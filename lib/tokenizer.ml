@@ -4,6 +4,16 @@ type token =
   | Slash
   | Text of string
 
+let to_string = function
+  | OpenTag -> "<"
+  | CloseTag -> ">"
+  | Slash -> "/"
+  | Text text -> text
+
+let print_tokens tokens =
+  List.iter print_string (List.map to_string tokens);
+  print_endline ""
+
 let get_text_value str =
   let text_regexp = Str.regexp "[A-Za-z]+" in
   if Str.string_match text_regexp str 0 then Str.matched_string str
