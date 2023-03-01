@@ -11,7 +11,7 @@
 
 (maintainers "9sako6")
 
-(license LICENSE)
+(license MIT)
 
 (documentation https://url/to/documentation)
 
