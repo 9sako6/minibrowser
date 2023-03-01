@@ -19,7 +19,11 @@
  (name minibrowser)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune ppx_inline_test)
+ (depends
+  ocaml
+  dune
+  (ppx_inline_test
+   (>= v0.15.0)))
  (tags
   (topics "to describe" your project)))
 
