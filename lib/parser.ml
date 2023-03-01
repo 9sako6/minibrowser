@@ -1,10 +1,8 @@
 open Tokenizer
 
-type name = string
-
 type node =
-  | Tag of name * node list
-  | Text of string
+  | Tag of string * node list
+  | TextTag of string
 
 let split_children_and_rest tokens =
   let rec split score children tails =
@@ -22,53 +20,19 @@ let split_children_and_rest tokens =
         else if score > 0 then split score (children @ [ head ]) rest
         else failwith "Fail to parse."
   in
-  split 1 [] tokens
-
-let _ =
-  let children, rest =
-    split_children_and_rest
-      [
-        (* 親の開始タグ <p> 以降が入力される *)
-        (* <p>child1</p><p>child2</p></p> *)
-        OpenTag;
-        Text "p";
-        CloseTag;
-        Text "child1";
-        OpenTag;
-        Slash;
-        Text "p";
-        CloseTag;
-        OpenTag;
-        Text "p";
-        CloseTag;
-        Text "child2";
-        OpenTag;
-        Slash;
-        Text "p";
-        CloseTag;
-        OpenTag;
-        Slash;
-        Text "p";
-        CloseTag;
-        (* <p>rest</p> *)
-        OpenTag;
-        Text "p";
-        CloseTag;
-        Text "rest";
-        OpenTag;
-        Slash;
-        Text "p";
-        CloseTag;
-      ]
+  let children, rest = split 1 [] tokens in
+  let children =
+    match List_util.reverse children with
+    | CloseTag :: Text _ :: Slash :: OpenTag :: tails -> List_util.reverse tails
+    | _ -> failwith "There is no close tag."
   in
-  print_tokens children;
-  print_tokens rest
+  (children, rest)
 
 let%test "split_children_and_rest <p>child1</p><p>child2</p></p><p>rest</p>" =
   split_children_and_rest
     [
       (* 親の開始タグ <p> 以降が入力される *)
-      (* <p>child1</p><p>child2</p></p> *)
+      (* <p>child1</p><p>child2</p> *)
       OpenTag;
       Text "p";
       CloseTag;
@@ -116,10 +80,6 @@ let%test "split_children_and_rest <p>child1</p><p>child2</p></p><p>rest</p>" =
         Slash;
         Text "p";
         CloseTag;
-        OpenTag;
-        Slash;
-        Text "p";
-        CloseTag;
       ],
       [
         OpenTag;
@@ -132,7 +92,57 @@ let%test "split_children_and_rest <p>child1</p><p>child2</p></p><p>rest</p>" =
         CloseTag;
       ] )
 
-(* let parse tokens =
-   match tokens with
-   | OpenTag :: Text name :: CloseTag :: rest -> Tag (name, [])
-   | _ *)
+let to_string node =
+  let rec nodes_to_string prefix nodes =
+    match nodes with
+    | [] -> ""
+    | head :: rest ->
+        Printf.sprintf "%s%s"
+          (node_to_string prefix head)
+          (nodes_to_string prefix rest)
+  and node_to_string prefix = function
+    | Tag (name, children) ->
+        Printf.sprintf "%s<%s>\n%s" prefix name
+          (nodes_to_string (prefix ^ " ") children)
+    | TextTag text -> Printf.sprintf "%s↳%s\n" prefix text
+  in
+  node_to_string "" node
+
+let rec parse tokens =
+  match tokens with
+  | [] -> []
+  | OpenTag :: Text name :: CloseTag :: rest ->
+      let children, rest = split_children_and_rest rest in
+      Tag (name, parse children) :: parse rest
+  | Text text :: OpenTag :: Slash :: Text _name :: CloseTag :: rest ->
+      TextTag text :: parse rest
+  | Text text :: rest -> TextTag text :: parse rest
+  | _ ->
+      failwith
+        (Printf.sprintf "Fail to parse: %s"
+           (String.concat "," (List.map Tokenizer.to_string tokens)))
+
+let%test "parse 1 tag" =
+  tokenize "<div>alice</div>" |> parse = [ Tag ("div", [ TextTag "alice" ]) ]
+
+let%test "parse 2 tags" =
+  tokenize "<div>alice</div><div>bob</div>"
+  |> parse
+  = [ Tag ("div", [ TextTag "alice" ]); Tag ("div", [ TextTag "bob" ]) ]
+
+let%test "parse with child" =
+  tokenize "<div>alice<p>child</p></div>"
+  |> parse
+  = [ Tag ("div", [ TextTag "alice"; Tag ("p", [ TextTag "child" ]) ]) ]
+
+let%test "parse with child and other" =
+  tokenize "<div>alice<p>child</p></div><div>bob</div>"
+  |> parse
+  = [
+      Tag ("div", [ TextTag "alice"; Tag ("p", [ TextTag "child" ]) ]);
+      Tag ("div", [ TextTag "bob" ]);
+    ]
+
+(* let _ =
+   tokenize "<p><p>child</p><p>child<p>grand</p></p></p><p>rest</p>"
+   |> parse |> List.map to_string |> List.iter print_string *)
