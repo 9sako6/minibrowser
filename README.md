@@ -1,6 +1,8 @@
 # minibrowser
 
 ```bash
+opam install --deps-only .
+
 dune runtest
 ```
 
