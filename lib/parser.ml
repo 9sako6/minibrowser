@@ -108,6 +108,16 @@ let to_string node =
   in
   node_to_string "" node
 
+let%expect_test "to_string div tag" =
+  Tag ("div", [ TextTag "alice"; Tag ("p", [ TextTag "child" ]) ])
+  |> to_string |> print_endline;
+  [%expect {|
+  <div>
+   ↳alice
+   <p>
+    ↳child
+  |}]
+
 let rec parse tokens =
   match tokens with
   | [] -> []
@@ -145,7 +155,3 @@ let%test "parse with child and other" =
       Tag ("div", [ TextTag "alice"; Tag ("p", [ TextTag "child" ]) ]);
       Tag ("div", [ TextTag "bob" ]);
     ]
-
-(* let _ =
-   tokenize "<p><p>child</p><p>child<p>grand</p></p></p><p>rest</p>"
-   |> parse |> List.map to_string |> List.iter print_string *)
