@@ -125,6 +125,9 @@ let rec parse tokens =
 let%test "parse 1 tag" =
   tokenize "<div>alice</div>" |> parse = [ Tag ("div", [ TextTag "alice" ]) ]
 
+let%test "parse 1 emtpy tag" =
+  tokenize "<div></div>" |> parse = [ Tag ("div", []) ]
+
 let%test "parse 2 tags" =
   tokenize "<div>alice</div><div>bob</div>"
   |> parse
