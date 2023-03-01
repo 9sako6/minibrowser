@@ -7,3 +7,4 @@ let reverse list =
   rev [] list
 
 let%test "reverse string list" = reverse [ "a"; "b"; "c" ] = [ "c"; "b"; "a" ]
+let%test "reverse int list" = reverse [ 1; 2; 3 ] = [ 3; 2; 1 ]

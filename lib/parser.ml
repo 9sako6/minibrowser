@@ -108,7 +108,7 @@ let to_string node =
   in
   node_to_string "" node
 
-let%expect_test "to_string div tag" =
+let%expect_test "to_string div tag with child" =
   Tag ("div", [ TextTag "alice"; Tag ("p", [ TextTag "child" ]) ])
   |> to_string |> print_endline;
   [%expect {|

@@ -44,7 +44,7 @@ let tokenize input_str =
     | '>' :: rest -> CloseTag :: acc rest
     | '/' :: rest -> Slash :: acc rest
     | _ ->
-        let sub_string = String_util.join chars in
+        let sub_string = String_util.chars_to_string chars in
         let text_value = get_text_value sub_string in
         let text_value_length = String.length text_value in
         let rest_sub_string =

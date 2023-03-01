@@ -7,7 +7,7 @@ let split str =
 let%test "split string into chars" = split "hello" = [ 'h'; 'e'; 'l'; 'l'; 'o' ]
 let%test "split empty string into chars" = split "" = []
 
-let join chars =
+let chars_to_string chars =
   let result = Bytes.create (List.length chars) in
   let rec _join i = function
     | [] -> result
@@ -17,5 +17,19 @@ let join chars =
   in
   Bytes.to_string (_join 0 chars)
 
-let%test "join chars" = join [ 'h'; 'e'; 'l'; 'l'; 'o' ] = "hello"
-let%test "join empty chars" = join [] = ""
+let%expect_test "chars_to_string chars" =
+  chars_to_string [ 'h'; 'e'; 'l'; 'l'; 'o' ] |> print_endline;
+  [%expect {| hello |}]
+
+let%expect_test "chars_to_string empty chars" =
+  chars_to_string [] |> print_endline;
+  [%expect {| |}]
+
+let rec join strings =
+  match strings with
+  | [] -> ""
+  | head :: rest -> head ^ join rest
+
+let%expect_test "join strings" =
+  join [ "ap"; "p"; "le" ] |> print_endline;
+  [%expect {| apple |}]
