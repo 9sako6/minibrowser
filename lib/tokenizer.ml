@@ -14,6 +14,20 @@ let print_tokens tokens =
   List.iter print_string (List.map to_string tokens);
   print_endline ""
 
+let%expect_test "print_tokens 1 tag" =
+  print_tokens
+    [
+      OpenTag;
+      Text "div";
+      CloseTag;
+      Text "a";
+      OpenTag;
+      Slash;
+      Text "div";
+      CloseTag;
+    ];
+  [%expect {| <div>a</div> |}]
+
 let get_text_value str =
   let text_regexp = Str.regexp "[A-Za-z]+" in
   if Str.string_match text_regexp str 0 then Str.matched_string str
