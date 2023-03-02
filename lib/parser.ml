@@ -106,9 +106,9 @@ let to_string node =
   and node_to_string prefix = function
     | Element (name, attributes, children) ->
         let attrs = attributes_to_string attributes in
-        Printf.sprintf "%s<%s %s>\n%s" prefix name attrs
-          (nodes_to_string (prefix ^ " ") children)
-    | InnerText text -> Printf.sprintf "%s↳%s\n" prefix text
+        Printf.sprintf "%s↳%s %s\n%s" prefix name attrs
+          (nodes_to_string (prefix ^ "  ") children)
+    | InnerText text -> Printf.sprintf "%s↳#text: %s\n" prefix text
   in
   node_to_string "" node
 
@@ -117,10 +117,10 @@ let%expect_test "to_string div tag with child" =
     ("div", [], [ InnerText "alice"; Element ("p", [], [ InnerText "child" ]) ])
   |> to_string |> print_endline;
   [%expect {|
-  <div >
-   ↳alice
-   <p >
-    ↳child
+  ↳div
+    ↳#text: alice
+    ↳p
+      ↳#text: child
   |}]
 
 let create_attribute tokens = tokens
@@ -209,18 +209,19 @@ let%expect_test "parse div tag with attribute" =
   tokenize "<div class=\"red\">hi</div>"
   |> parse |> List.hd |> to_string |> print_endline;
   [%expect {|
-  <div class="red">
-   ↳hi
+  ↳div class="red"
+    ↳#text: hi
   |}]
 
 let%expect_test "parse div tag with attribute and children" =
   tokenize "<div class=\"red\">hi<p>a</p><p>b</p></div>"
   |> parse |> List.hd |> to_string |> print_endline;
-  [%expect {|
-  <div class="red">
-   ↳hi
-   <p >
-    ↳a
-   <p >
-    ↳b
+  [%expect
+    {|
+  ↳div class="red"
+    ↳#text: hi
+    ↳p
+      ↳#text: a
+    ↳p
+      ↳#text: b
   |}]
