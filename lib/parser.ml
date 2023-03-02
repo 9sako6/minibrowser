@@ -1,8 +1,8 @@
 open Tokenizer
 
 type node =
-  | Tag of string * node list
-  | TextTag of string
+  | Element of string * node list
+  | InnerText of string
 
 let split_children_and_rest tokens =
   let rec split score children tails =
@@ -101,15 +101,15 @@ let to_string node =
           (node_to_string prefix head)
           (nodes_to_string prefix rest)
   and node_to_string prefix = function
-    | Tag (name, children) ->
+    | Element (name, children) ->
         Printf.sprintf "%s<%s>\n%s" prefix name
           (nodes_to_string (prefix ^ " ") children)
-    | TextTag text -> Printf.sprintf "%s↳%s\n" prefix text
+    | InnerText text -> Printf.sprintf "%s↳%s\n" prefix text
   in
   node_to_string "" node
 
 let%expect_test "to_string div tag with child" =
-  Tag ("div", [ TextTag "alice"; Tag ("p", [ TextTag "child" ]) ])
+  Element ("div", [ InnerText "alice"; Element ("p", [ InnerText "child" ]) ])
   |> to_string |> print_endline;
   [%expect {|
   <div>
@@ -123,35 +123,44 @@ let rec parse tokens =
   | [] -> []
   | OpenTag :: Text name :: CloseTag :: rest ->
       let children, rest = split_children_and_rest rest in
-      Tag (name, parse children) :: parse rest
+      Element (name, parse children) :: parse rest
   | Text text :: OpenTag :: Slash :: Text _name :: CloseTag :: rest ->
-      TextTag text :: parse rest
-  | Text text :: rest -> TextTag text :: parse rest
+      InnerText text :: parse rest
+  | Text text :: rest -> InnerText text :: parse rest
   | _ ->
       failwith
         (Printf.sprintf "Fail to parse: %s"
            (String.concat "," (List.map Tokenizer.to_string tokens)))
 
 let%test "parse 1 tag" =
-  tokenize "<div>alice</div>" |> parse = [ Tag ("div", [ TextTag "alice" ]) ]
+  tokenize "<div>alice</div>"
+  |> parse
+  = [ Element ("div", [ InnerText "alice" ]) ]
 
 let%test "parse 1 emtpy tag" =
-  tokenize "<div></div>" |> parse = [ Tag ("div", []) ]
+  tokenize "<div></div>" |> parse = [ Element ("div", []) ]
 
 let%test "parse 2 tags" =
   tokenize "<div>alice</div><div>bob</div>"
   |> parse
-  = [ Tag ("div", [ TextTag "alice" ]); Tag ("div", [ TextTag "bob" ]) ]
+  = [
+      Element ("div", [ InnerText "alice" ]);
+      Element ("div", [ InnerText "bob" ]);
+    ]
 
 let%test "parse with child" =
   tokenize "<div>alice<p>child</p></div>"
   |> parse
-  = [ Tag ("div", [ TextTag "alice"; Tag ("p", [ TextTag "child" ]) ]) ]
+  = [
+      Element
+        ("div", [ InnerText "alice"; Element ("p", [ InnerText "child" ]) ]);
+    ]
 
 let%test "parse with child and other" =
   tokenize "<div>alice<p>child</p></div><div>bob</div>"
   |> parse
   = [
-      Tag ("div", [ TextTag "alice"; Tag ("p", [ TextTag "child" ]) ]);
-      Tag ("div", [ TextTag "bob" ]);
+      Element
+        ("div", [ InnerText "alice"; Element ("p", [ InnerText "child" ]) ]);
+      Element ("div", [ InnerText "bob" ]);
     ]
