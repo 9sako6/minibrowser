@@ -25,22 +25,20 @@ let children_and_rest_tokans tokens =
   let rec split score children tails =
     match tails with
     | [] -> raise NoEndTag
-    | OpenTag :: Slash :: rest ->
-        split (score - 1) (children @ [ OpenTag; Slash ]) rest
-    | OpenTag :: rest -> split (score + 1) (children @ [ OpenTag ]) rest
+    | "<" :: "/" :: rest -> split (score - 1) (children @ [ "<"; "/" ]) rest
+    | "<" :: rest -> split (score + 1) (children @ [ "<" ]) rest
     | head :: rest ->
         if score = 0 then
           match head with
-          | CloseTag -> (children @ [ CloseTag ], rest)
-          | Text _ -> split 0 (children @ [ head ]) rest
-          | _ -> failwith "Fail to parse."
+          | ">" -> (children @ [ ">" ], rest)
+          | _ -> split 0 (children @ [ head ]) rest
         else if score > 0 then split score (children @ [ head ]) rest
         else failwith "Fail to parse."
   in
   let children, rest = split 1 [] tokens in
   let children =
     match List_util.reverse children with
-    | CloseTag :: Text _ :: Slash :: OpenTag :: tails -> List_util.reverse tails
+    | ">" :: _ :: "/" :: "<" :: tails -> List_util.reverse tails
     | _ -> raise NoEndTag
   in
   (children, rest)
@@ -50,64 +48,55 @@ let%test "split_children_and_rest <p>child1</p><p>child2</p></p><p>rest</p>" =
     [
       (* 親の開始タグ <p> 以降が入力される *)
       (* <p>child1</p><p>child2</p> *)
-      OpenTag;
-      Text "p";
-      CloseTag;
-      Text "child1";
-      OpenTag;
-      Slash;
-      Text "p";
-      CloseTag;
-      OpenTag;
-      Text "p";
-      CloseTag;
-      Text "child2";
-      OpenTag;
-      Slash;
-      Text "p";
-      CloseTag;
-      OpenTag;
-      Slash;
-      Text "p";
-      CloseTag;
+      "<";
+      "p";
+      ">";
+      "child1";
+      "<";
+      "/";
+      "p";
+      ">";
+      "<";
+      "p";
+      ">";
+      "child2";
+      "<";
+      "/";
+      "p";
+      ">";
+      "<";
+      "/";
+      "p";
+      ">";
       (* <p>rest</p> *)
-      OpenTag;
-      Text "p";
-      CloseTag;
-      Text "rest";
-      OpenTag;
-      Slash;
-      Text "p";
-      CloseTag;
+      "<";
+      "p";
+      ">";
+      "rest";
+      "<";
+      "/";
+      "p";
+      ">";
     ]
   = ( [
-        OpenTag;
-        Text "p";
-        CloseTag;
-        Text "child1";
-        OpenTag;
-        Slash;
-        Text "p";
-        CloseTag;
-        OpenTag;
-        Text "p";
-        CloseTag;
-        Text "child2";
-        OpenTag;
-        Slash;
-        Text "p";
-        CloseTag;
+        "<";
+        "p";
+        ">";
+        "child1";
+        "<";
+        "/";
+        "p";
+        ">";
+        "<";
+        "p";
+        ">";
+        "child2";
+        "<";
+        "/";
+        "p";
+        ">";
       ],
-      [
-        OpenTag;
-        Text "p";
-        CloseTag;
-        Text "rest";
-        OpenTag;
-        Slash;
-        Text "p";
-        CloseTag;
-      ] )
+      [ "<"; "p"; ">"; "rest"; "<"; "/"; "p"; ">" ] )
 
 let to_string node =
   let attributes_to_string attributes =
@@ -144,11 +133,8 @@ let attributes_and_rest_tokens tokens =
   let rec split attributes rest =
     match rest with
     | [] -> (attributes, [])
-    | CloseTag :: rest -> (attributes, rest)
-    | Text attribute_name
-      :: Equal :: DoubleQuote
-      :: Text attribute_value
-      :: DoubleQuote :: rest ->
+    | ">" :: rest -> (attributes, rest)
+    | attribute_name :: "=" :: "\"" :: attribute_value :: "\"" :: rest ->
         let attribute = Attribute.create attribute_name attribute_value in
         split (attributes @ [ attribute ]) rest
     | _ -> ([], rest)
@@ -159,18 +145,13 @@ let rec parse tokens =
   match tokens with
   | [] -> []
   (* Start of tag *)
-  | OpenTag :: Text tag_name :: rest ->
+  | "<" :: tag_name :: rest ->
       let attributes, rest = attributes_and_rest_tokens rest in
       let children, rest = children_and_rest_tokans rest in
       Element (tag_name, attributes, parse children) :: parse rest
   (* End of tag *)
-  | Text text :: OpenTag :: Slash :: Text _name :: CloseTag :: rest ->
-      InnerText text :: parse rest
-  | Text text :: rest -> InnerText text :: parse rest
-  | _ ->
-      failwith
-        (Printf.sprintf "Fail to parse: %s"
-           (String.concat "," (List.map Tokenizer.to_string tokens)))
+  | text :: "<" :: "/" :: _name :: ">" :: rest -> InnerText text :: parse rest
+  | text :: rest -> InnerText text :: parse rest
 
 let%test "parse 1 tag" =
   tokenize "<div>alice</div>"
@@ -219,8 +200,16 @@ let%expect_test "parse div tag with attribute" =
     ↳#text: hi
   |}]
 
+let%expect_test "parse div tag with newline" =
+  tokenize "\n  <div class=\"red\">\n    hi\n  </div>"
+  |> parse |> List.hd |> to_string |> print_endline;
+  [%expect {|
+  ↳div class="red"
+    ↳#text: hi
+  |}]
+
 let%expect_test "parse div tag with attribute and children" =
-  tokenize "<div class=\"red\">hi<p>a</p><p>b</p></div>"
+  tokenize "<div class=\"red\">\n  hi<p>a</p><p>b</p></div>"
   |> parse |> List.hd |> to_string |> print_endline;
   [%expect
     {|
