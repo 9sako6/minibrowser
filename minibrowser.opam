@@ -12,6 +12,7 @@ bug-reports: "https://github.com/9sako6/minibrowser/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.6"}
+  "alcotest" {with-test}
   "ppx_expect" {with-test}
   "ppx_inline_test" {with-test}
   "odoc" {with-doc}
