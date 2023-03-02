@@ -1,6 +1,24 @@
-(* let test_transpile_error invalid_program expected_error () =
-  let run () =
-    try failwith "" with _ -> Alcotest.fail "No exception was thrown"
-    (* with e -> raise e *)
-  in
-  Alcotest.check_raises "test_transpile_error" expected_error run *)
+let () =
+  Alcotest.check_raises "parse no end tag" Minibrowser.Parser.NoEndTag
+    (fun () ->
+      let _ =
+        Minibrowser.Tokenizer.tokenize "<div>" |> Minibrowser.Parser.parse
+      in
+      ())
+
+let () =
+  Alcotest.check_raises "parse no end tag with child"
+    Minibrowser.Parser.NoEndTag (fun () ->
+      let _ =
+        Minibrowser.Tokenizer.tokenize "<div><p>child</p>"
+        |> Minibrowser.Parser.parse
+      in
+      ())
+
+let () =
+  Alcotest.check_raises "parse no end tag bracket" Minibrowser.Parser.NoEndTag
+    (fun () ->
+      let _ =
+        Minibrowser.Tokenizer.tokenize "<div" |> Minibrowser.Parser.parse
+      in
+      ())

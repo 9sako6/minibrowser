@@ -1,5 +1,7 @@
 open Tokenizer
 
+exception NoEndTag
+
 type node =
   | Element of string * token list * node list
   | InnerText of string
@@ -7,7 +9,7 @@ type node =
 let children_and_rest_tokans tokens =
   let rec split score children tails =
     match tails with
-    | [] -> failwith "Fail to parse."
+    | [] -> raise NoEndTag
     | OpenTag :: Slash :: rest ->
         split (score - 1) (children @ [ OpenTag; Slash ]) rest
     | OpenTag :: rest -> split (score + 1) (children @ [ OpenTag ]) rest
@@ -24,7 +26,7 @@ let children_and_rest_tokans tokens =
   let children =
     match List_util.reverse children with
     | CloseTag :: Text _ :: Slash :: OpenTag :: tails -> List_util.reverse tails
-    | _ -> failwith "There is no close tag."
+    | _ -> raise NoEndTag
   in
   (children, rest)
 
