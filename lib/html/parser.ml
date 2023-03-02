@@ -46,7 +46,6 @@ let children_and_rest_tokans tokens =
 let%test "split_children_and_rest <p>child1</p><p>child2</p></p><p>rest</p>" =
   children_and_rest_tokans
     [
-      (* 親の開始タグ <p> 以降が入力される *)
       (* <p>child1</p><p>child2</p> *)
       "<";
       "p";
