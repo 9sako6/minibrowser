@@ -2,8 +2,23 @@ open Tokenizer
 
 exception NoEndTag
 
+module Attribute : sig
+  type t
+
+  val create : string -> string -> t
+  val to_string : t -> string
+end = struct
+  type t = string * string
+
+  let create key value = (key, value)
+
+  let to_string attribute =
+    match attribute with
+    | key, value -> Printf.sprintf "%s=\"%s\"" key value
+end
+
 type node =
-  | Element of string * token list * node list
+  | Element of string * Attribute.t list * node list
   | InnerText of string
 
 let children_and_rest_tokans tokens =
@@ -96,7 +111,7 @@ let%test "split_children_and_rest <p>child1</p><p>child2</p></p><p>rest</p>" =
 
 let to_string node =
   let attributes_to_string attributes =
-    List.map Tokenizer.to_string attributes |> String_util.join
+    attributes |> List.map Attribute.to_string |> String.concat " "
   in
   let rec nodes_to_string prefix nodes =
     match nodes with
@@ -125,8 +140,6 @@ let%expect_test "to_string div tag with child" =
       ↳#text: child
   |}]
 
-let create_attribute tokens = tokens
-
 let attributes_and_rest_tokens tokens =
   let rec split attributes rest =
     match rest with
@@ -136,17 +149,8 @@ let attributes_and_rest_tokens tokens =
       :: Equal :: DoubleQuote
       :: Text attribute_value
       :: DoubleQuote :: rest ->
-        let attribute =
-          create_attribute
-            [
-              Text attribute_name;
-              Equal;
-              DoubleQuote;
-              Text attribute_value;
-              DoubleQuote;
-            ]
-        in
-        split (attributes @ attribute) rest
+        let attribute = Attribute.create attribute_name attribute_value in
+        split (attributes @ [ attribute ]) rest
     | _ -> ([], rest)
   in
   split [] tokens
