@@ -1,0 +1,6 @@
+(library
+ (name css)
+ (libraries list_util str string_util)
+ (inline_tests)
+ (preprocess
+  (pps ppx_expect)))

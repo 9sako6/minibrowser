@@ -1,6 +1,5 @@
 (library
- (name html)
- (libraries str list_util string_util)
+ (name string_util)
  (inline_tests)
  (preprocess
   (pps ppx_expect ppx_inline_test)))
