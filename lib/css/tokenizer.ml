@@ -21,11 +21,8 @@ let tokenize input_string =
     match chars with
     | [] -> []
     | ' ' :: rest -> acc rest
-    | ('.' as head) :: rest
-    | ('{' as head) :: rest
-    | ('}' as head) :: rest
-    | (';' as head) :: rest
-    | (':' as head) :: rest -> String.make 1 head :: acc rest
+    | '.' :: rest | '{' :: rest | '}' :: rest | ';' :: rest | ':' :: rest ->
+        String.make 1 (List.hd chars) :: acc rest
     | _ ->
         let chunk, rest = tokenize_chunk chars in
         chunk :: acc rest
