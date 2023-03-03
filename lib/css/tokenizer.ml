@@ -20,17 +20,21 @@ let tokenize input_string =
   let rec acc chars =
     match chars with
     | [] -> []
-    | ' ' :: rest -> acc rest
-    | '.' :: rest | '{' :: rest | '}' :: rest | ';' :: rest | ':' :: rest ->
-        String.make 1 (List.hd chars) :: acc rest
+    | ' ' :: rest | '\n' :: rest -> acc rest
+    | '.' :: rest
+    | '{' :: rest
+    | '}' :: rest
+    | ';' :: rest
+    | ':' :: rest
+    | ',' :: rest -> String.make 1 (List.hd chars) :: acc rest
     | _ ->
         let chunk, rest = tokenize_chunk chars in
         chunk :: acc rest
   in
   acc (String_util.split input_string)
 
-let print_tokens tokens = print_endline (String.concat "," tokens)
+let print_tokens tokens = print_endline (String.concat " " tokens)
 
 let%expect_test "tokenize" =
   tokenize ".foo { display: none; }" |> print_tokens;
-  [%expect {|.,foo,{,display,:,none,;,}|}]
+  [%expect {|. foo { display : none ; }|}]
