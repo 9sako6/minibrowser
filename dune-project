@@ -22,6 +22,7 @@
  (depends
   ocaml
   dune
+  bogue
   (alcotest :with-test)
   (ppx_expect :with-test)
   (ppx_inline_test :with-test))
