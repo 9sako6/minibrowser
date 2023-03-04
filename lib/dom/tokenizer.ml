@@ -17,26 +17,22 @@ let%expect_test "get_text_value with number" =
   [%expect {| 55go |}]
 
 let tokenize input_str =
-  let rec acc chars =
+  let rec acc tokens chars =
     match chars with
-    | [] -> []
-    | ' ' :: rest | '\n' :: rest -> acc rest
-    | '<' :: rest -> "<" :: acc rest
-    | '>' :: rest -> ">" :: acc rest
-    | '/' :: rest -> "/" :: acc rest
-    | '=' :: rest -> "=" :: acc rest
-    | '"' :: rest -> "\"" :: acc rest
+    | [] -> (tokens, [])
+    | ' ' :: rest | '\n' :: rest -> acc tokens rest
+    | '<' :: rest | '>' :: rest | '/' :: rest | '=' :: rest | '"' :: rest ->
+        let token = List.hd chars |> String.make 1 in
+        acc (tokens @ [ token ]) rest
     | _ ->
         let sub_string = String_util.chars_to_string chars in
-        let text_value = get_text_value sub_string in
-        let text_value_length = String.length text_value in
-        let rest_sub_string =
-          String.sub sub_string text_value_length
-            (String.length sub_string - text_value_length)
-        in
-        text_value :: acc (String_util.split rest_sub_string)
+        let token = get_text_value sub_string in
+        let pos = String.length token in
+        let _, rest = List_util.split pos chars in
+        acc (tokens @ [ token ]) rest
   in
-  acc (String_util.split input_str)
+  let tokens, _ = acc [] (String_util.split input_str) in
+  tokens
 
 let%test "tokenize <div>a</div>" =
   tokenize "<div>a</div>" = [ "<"; "div"; ">"; "a"; "<"; "/"; "div"; ">" ]
