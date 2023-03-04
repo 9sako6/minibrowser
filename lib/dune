@@ -1,6 +1,6 @@
 (library
  (name minibrowser)
- (libraries str dom css)
+ (libraries bogue str dom css)
  (inline_tests)
  (preprocess
   (pps ppx_expect ppx_inline_test)))
