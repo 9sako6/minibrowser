@@ -19,10 +19,10 @@ let%expect_test "tokenize_chunk" =
   [%expect {| foo |}]
 
 let tokenize input_string =
-  let rec acc chars =
+  let rec acc tokens chars =
     match chars with
-    | [] -> []
-    | ' ' :: rest | '\n' :: rest -> acc rest
+    | [] -> (tokens, [])
+    | ' ' :: rest | '\n' :: rest -> acc tokens rest
     | '.' :: rest
     | '{' :: rest
     | '}' :: rest
@@ -30,12 +30,13 @@ let tokenize input_string =
     | ':' :: rest
     | '#' :: rest
     | '*' :: rest
-    | ',' :: rest -> String.make 1 (List.hd chars) :: acc rest
+    | ',' :: rest -> acc (tokens @ [ String.make 1 (List.hd chars) ]) rest
     | _ ->
         let chunk, rest = tokenize_chunk chars in
-        chunk :: acc rest
+        acc (tokens @ [ chunk ]) rest
   in
-  acc (String_util.split input_string)
+  let tokens, _ = acc [] (String_util.split input_string) in
+  tokens
 
 let print_tokens tokens = print_endline (String.concat " " tokens)
 
