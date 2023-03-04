@@ -1,8 +1,8 @@
-type t = Style of Dom.Node.t * Css.Node.rule list * t list
+type t = Style of Dom.Node.t ref * Css.Node.rule list * t list
 
 let string_of_style = function
   | Style (dom_node, rules, _) ->
-      let dom_string = Dom.Parser.to_string dom_node in
+      let dom_string = Dom.Parser.to_string !dom_node in
       let rules_string =
         rules |> List.map Css.Parser.string_of_rule |> String.concat "; "
       in
@@ -62,22 +62,22 @@ let%expect_test "matches" =
   matches dom_node rule |> string_of_bool |> print_endline;
   [%expect {| false |}]
 
-let create dom_node stylesheet =
+let create dom_node_ref stylesheet =
   let matched_rules =
     match stylesheet with
-    | Css.Node.Stylesheet rules -> List.filter (matches dom_node) rules
+    | Css.Node.Stylesheet rules -> List.filter (matches !dom_node_ref) rules
   in
-  Style (dom_node, matched_rules, [])
+  Style (dom_node_ref, matched_rules, [])
 
 let%expect_test "create" =
-  let dom_node =
+  let dom_node_ref =
     "<div id=\"foo\" class=\"alert\">hello</div>" |> Dom.Tokenizer.tokenize
-    |> Dom.Parser.parse |> List.hd
+    |> Dom.Parser.parse |> List.hd |> ref
   in
   let stylesheet =
     ".alert {color: tomato;}" |> Css.Tokenizer.tokenize |> Css.Parser.parse
   in
-  let style = create dom_node stylesheet in
+  let style = create dom_node_ref stylesheet in
   style |> string_of_style |> print_endline;
   [%expect
     {|
@@ -91,14 +91,14 @@ let%expect_test "create" =
     |}]
 
 let%expect_test "create" =
-  let dom_node =
+  let dom_node_ref =
     "<div id=\"foo\" class=\"alert\">hello</div>" |> Dom.Tokenizer.tokenize
-    |> Dom.Parser.parse |> List.hd
+    |> Dom.Parser.parse |> List.hd |> ref
   in
   let stylesheet =
     "* {font-size: 12px;}" |> Css.Tokenizer.tokenize |> Css.Parser.parse
   in
-  let style = create dom_node stylesheet in
+  let style = create dom_node_ref stylesheet in
   style |> string_of_style |> print_endline;
   [%expect
     {|
