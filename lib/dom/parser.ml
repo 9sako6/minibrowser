@@ -1,25 +1,7 @@
 open Tokenizer
+open Node
 
 exception NoEndTag
-
-module Attribute : sig
-  type t
-
-  val create : string -> string -> t
-  val to_string : t -> string
-end = struct
-  type t = string * string
-
-  let create key value = (key, value)
-
-  let to_string attribute =
-    match attribute with
-    | key, value -> Printf.sprintf "%s=\"%s\"" key value
-end
-
-type node =
-  | Element of string * Attribute.t list * node list
-  | InnerText of string
 
 let children_and_rest_tokans tokens =
   let rec split score children tails =
