@@ -1,6 +1,6 @@
 (library
  (name dom)
- (libraries str list_util string_util)
+ (libraries base str)
  (inline_tests)
  (preprocess
   (pps ppx_expect ppx_inline_test)))

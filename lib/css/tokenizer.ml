@@ -2,14 +2,16 @@ exception Unknown_character of string
 
 let tokenize_chunk chars =
   let chunk_regexp = Str.regexp "[A-Za-z0-9-]+" in
-  let input_string = String_util.chars_to_string chars in
+  let input_string =
+    chars |> List.map Base.String.of_char |> String.concat ""
+  in
   let chunk =
     if Str.string_match chunk_regexp input_string 0 then
       Str.matched_string input_string
-    else raise (Unknown_character (String.make 1 input_string.[0]))
+    else raise (Unknown_character (Base.String.of_char input_string.[0]))
   in
   let pos = String.length chunk in
-  let _, rest = List_util.split pos chars in
+  let _, rest = Base.List.split_n chars pos in
   (chunk, rest)
 
 let%expect_test "tokenize_chunk" =
@@ -30,12 +32,12 @@ let tokenize input_string =
     | ':' :: rest
     | '#' :: rest
     | '*' :: rest
-    | ',' :: rest -> acc (tokens @ [ String.make 1 (List.hd chars) ]) rest
+    | ',' :: rest -> acc (tokens @ [ Base.String.of_char (List.hd chars) ]) rest
     | _ ->
         let chunk, rest = tokenize_chunk chars in
         acc (tokens @ [ chunk ]) rest
   in
-  let tokens, _ = acc [] (String_util.split input_string) in
+  let tokens, _ = acc [] (Base.String.to_list input_string) in
   tokens
 
 let print_tokens tokens = print_endline (String.concat " " tokens)

@@ -19,8 +19,8 @@ let children_and_rest_tokans tokens =
   in
   let children, rest = split 1 [] tokens in
   let children =
-    match List_util.reverse children with
-    | ">" :: _ :: "/" :: "<" :: tails -> List_util.reverse tails
+    match Base.List.rev children with
+    | ">" :: _ :: "/" :: "<" :: tails -> Base.List.rev tails
     | _ -> raise NoEndTag
   in
   (children, rest)

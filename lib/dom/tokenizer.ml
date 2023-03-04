@@ -22,16 +22,18 @@ let tokenize input_str =
     | [] -> (tokens, [])
     | ' ' :: rest | '\n' :: rest -> acc tokens rest
     | '<' :: rest | '>' :: rest | '/' :: rest | '=' :: rest | '"' :: rest ->
-        let token = List.hd chars |> String.make 1 in
+        let token = List.hd chars |> Base.String.of_char in
         acc (tokens @ [ token ]) rest
     | _ ->
-        let sub_string = String_util.chars_to_string chars in
+        let sub_string =
+          chars |> List.map Base.String.of_char |> String.concat ""
+        in
         let token = get_text_value sub_string in
         let pos = String.length token in
-        let _, rest = List_util.split pos chars in
+        let _, rest = Base.List.split_n chars pos in
         acc (tokens @ [ token ]) rest
   in
-  let tokens, _ = acc [] (String_util.split input_str) in
+  let tokens, _ = acc [] (Base.String.to_list input_str) in
   tokens
 
 let%test "tokenize <div>a</div>" =
