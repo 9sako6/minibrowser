@@ -2,7 +2,7 @@ type t = Style of Dom.Node.t ref * Css.Node.rule list * t list
 
 let rec string_of_style ?(indent = "") = function
   | Style (dom_node, rules, style_children) ->
-      let dom_string = Dom.Parser.string_of_node !dom_node in
+      let dom_string = Dom.Node.string_of_node !dom_node in
       let rules_string =
         rules |> List.map Css.Node.string_of_rule |> String.concat "; "
       in

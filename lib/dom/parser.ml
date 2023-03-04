@@ -79,45 +79,6 @@ let%test "split_children_and_rest <p>child1</p><p>child2</p></p><p>rest</p>" =
       ],
       [ "<"; "p"; ">"; "rest"; "<"; "/"; "p"; ">" ] )
 
-let to_string node =
-  let attributes_to_string attributes =
-    attributes |> List.map Attribute.to_string |> String.concat " "
-  in
-  let rec nodes_to_string prefix nodes =
-    match nodes with
-    | [] -> ""
-    | head :: rest ->
-        Printf.sprintf "%s%s"
-          (node_to_string prefix head)
-          (nodes_to_string prefix rest)
-  and node_to_string prefix = function
-    | Element (name, attributes, children) ->
-        let attrs = attributes_to_string attributes in
-        Printf.sprintf "%s↳%s %s\n%s" prefix name attrs
-          (nodes_to_string (prefix ^ "  ") children)
-    | InnerText text -> Printf.sprintf "%s↳#text: %s\n" prefix text
-  in
-  node_to_string "" node
-
-let%expect_test "to_string div tag with child" =
-  Element
-    ("div", [], [ InnerText "alice"; Element ("p", [], [ InnerText "child" ]) ])
-  |> to_string |> print_endline;
-  [%expect {|
-  ↳div
-    ↳#text: alice
-    ↳p
-      ↳#text: child
-  |}]
-
-let string_of_node = function
-  | Element (name, attributes, _) ->
-      let attributes_str =
-        attributes |> List.map Attribute.to_string |> String.concat "; "
-      in
-      Printf.sprintf "Element(%s; [%s])" name attributes_str
-  | InnerText text -> Printf.sprintf "InnerText(\"%s\")" text
-
 let attributes_and_rest_tokens tokens =
   let rec split attributes rest =
     match rest with
