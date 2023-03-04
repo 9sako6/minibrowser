@@ -110,6 +110,14 @@ let%expect_test "to_string div tag with child" =
       ↳#text: child
   |}]
 
+let string_of_node = function
+  | Element (name, attributes, _) ->
+      let attributes_str =
+        attributes |> List.map Attribute.to_string |> String.concat "; "
+      in
+      Printf.sprintf "Element(%s; [%s])" name attributes_str
+  | InnerText text -> Printf.sprintf "InnerText(\"%s\")" text
+
 let attributes_and_rest_tokens tokens =
   let rec split attributes rest =
     match rest with
