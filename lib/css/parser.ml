@@ -1,5 +1,5 @@
 type selector =
-  | Universal_selector of string
+  | Universal_selector
   | Class_selector of string
 
 type declaration = Declaration of string * string
@@ -13,7 +13,7 @@ let string_of_declaration = function
   | Declaration (name, value) -> Printf.sprintf "Declaration(%s: %s)" name value
 
 let string_of_selector = function
-  | Universal_selector name -> Printf.sprintf "Universal_selector(%s)" name
+  | Universal_selector -> Printf.sprintf "Universal_selector"
   | Class_selector name -> Printf.sprintf "Class_selector(%s)" name
 
 let string_of_rule = function
@@ -34,10 +34,18 @@ let string_of_stylesheet stylesheet =
       in
       Printf.sprintf "Stylesheet([%s])" rules_string
 
-let rec parse_declaration tokens =
+let parse_declaration tokens =
   match tokens with
-  | "{" :: rest -> parse_declaration rest
-  | name :: ":" :: value :: ";" :: rest -> (Declaration (name, value), rest)
+  (* | "{" :: rest -> parse_declaration rest *)
+  | name :: ":" :: rest ->
+      let rec parse_declaration_value value_tokens rest =
+        match rest with
+        | ";" :: rest -> (value_tokens, rest)
+        | head :: rest -> parse_declaration_value (value_tokens @ [ head ]) rest
+        | [] -> raise Invalid_declaration
+      in
+      let value_tokens, rest = parse_declaration_value [] rest in
+      (Declaration (name, String_util.join value_tokens), rest)
   | _ -> raise Invalid_declaration
 
 let%expect_test "parse_declaration" =
@@ -48,15 +56,38 @@ let%expect_test "parse_declaration" =
   assert (rest = [ "}"; "."; "foo"; "{"; "}" ]);
   [%expect {| Declaration(margin: left) |}]
 
+let%expect_test "parse_declaration" =
+  let declaration, rest =
+    parse_declaration
+      [ "color"; ":"; "#"; "191919"; ";"; "}"; "."; "foo"; "{"; "}" ]
+  in
+  print_endline (string_of_declaration declaration);
+  assert (rest = [ "}"; "."; "foo"; "{"; "}" ]);
+  [%expect {| Declaration(color: #191919) |}]
+
 let parse_declarations tokens =
   let rec acc declarations rest =
     match rest with
+    | "{" :: rest -> acc declarations rest
     | "}" :: _ -> (declarations, rest)
     | _ ->
         let declaration, rest = parse_declaration rest in
         acc (declarations @ [ declaration ]) rest
   in
   acc [] tokens
+
+let%expect_test "parse_declarations" =
+  let declarations, rest =
+    "display: none; color: #191919;}" |> Tokenizer.tokenize
+    |> parse_declarations
+  in
+  assert (rest = [ "}" ]);
+  declarations |> List.map string_of_declaration |> List.iter print_endline;
+  [%expect
+    {|
+    Declaration(display: none)
+    Declaration(color: #191919)
+  |}]
 
 let parse_selector tokens =
   let rec split selector_tokens rest =
@@ -69,7 +100,7 @@ let parse_selector tokens =
   let selector_tokens, rest = split [] tokens in
   let selector =
     match selector_tokens with
-    | "*" :: t -> Universal_selector (String.concat "" t)
+    | "*" :: _ -> Universal_selector
     | "." :: t -> Class_selector (String.concat "" t)
     | _ -> raise Unknown_selector
   in
@@ -113,7 +144,7 @@ let parse tokens =
   Stylesheet rules
 
 let%expect_test "parse" =
-  "\n.foo,.bar {\n  display: flex;\n  color: red;\n}\n" |> Tokenizer.tokenize
+  ".foo,.bar {\n  display: flex;\n  color: red;\n}\n" |> Tokenizer.tokenize
   |> parse |> string_of_stylesheet |> print_endline;
   [%expect
     {| Stylesheet([Rule([Class_selector(foo); Class_selector(bar)], [Declaration(display: flex); Declaration(color: red)])]) |}]
