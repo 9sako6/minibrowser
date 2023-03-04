@@ -15,11 +15,22 @@ let tokenize_chunk chars =
   let chunk =
     if Str.string_match chunk_regexp input_string 0 then
       Str.matched_string input_string
-    else raise (Unknown_character (Base.String.of_char input_string.[0]))
+    else Unknown_character (Base.String.of_char input_string.[0]) |> raise
   in
   let pos = String.length chunk in
   let _, rest = Base.List.split_n chars pos in
   (chunk, rest)
+
+let%expect_test "tokenize_chunk" =
+  let chunk, rest =
+    "div>hello</div>" |> Base.String.to_list |> tokenize_chunk
+  in
+  print_endline chunk;
+  List.iter print_char rest;
+  [%expect {|
+    div
+    >hello</div>
+  |}]
 
 let tokenize input_string =
   let rec acc tokens chars =
