@@ -1,7 +1,7 @@
 exception Unknown_character of string
 
 let tokenize_chunk chars =
-  let chunk_regexp = Str.regexp "[A-Za-z0-9]+" in
+  let chunk_regexp = Str.regexp "[A-Za-z0-9-]+" in
   let input_string = String_util.chars_to_string chars in
   let chunk =
     if Str.string_match chunk_regexp input_string 0 then
@@ -29,6 +29,7 @@ let tokenize input_string =
     | ';' :: rest
     | ':' :: rest
     | '#' :: rest
+    | '*' :: rest
     | ',' :: rest -> String.make 1 (List.hd chars) :: acc rest
     | _ ->
         let chunk, rest = tokenize_chunk chars in

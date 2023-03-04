@@ -36,13 +36,12 @@ let string_of_stylesheet stylesheet =
 
 let parse_declaration tokens =
   match tokens with
-  (* | "{" :: rest -> parse_declaration rest *)
   | name :: ":" :: rest ->
       let rec parse_declaration_value value_tokens rest =
         match rest with
         | ";" :: rest -> (value_tokens, rest)
         | head :: rest -> parse_declaration_value (value_tokens @ [ head ]) rest
-        | [] -> raise Invalid_declaration
+        | [] -> (value_tokens, [])
       in
       let value_tokens, rest = parse_declaration_value [] rest in
       (Declaration (name, String_util.join value_tokens), rest)
@@ -78,7 +77,7 @@ let parse_declarations tokens =
 
 let%expect_test "parse_declarations" =
   let declarations, rest =
-    "display: none; color: #191919;}" |> Tokenizer.tokenize
+    "display: none; color: #191919; font-size: 14px;}" |> Tokenizer.tokenize
     |> parse_declarations
   in
   assert (rest = [ "}" ]);
@@ -87,6 +86,7 @@ let%expect_test "parse_declarations" =
     {|
     Declaration(display: none)
     Declaration(color: #191919)
+    Declaration(font-size: 14px)
   |}]
 
 let parse_selector tokens =
@@ -105,6 +105,20 @@ let parse_selector tokens =
     | _ -> raise Unknown_selector
   in
   (selector, rest)
+
+let%expect_test "parse_selector" =
+  let selector, _ =
+    "* {font-size: 14px;}" |> Tokenizer.tokenize |> parse_selector
+  in
+  selector |> string_of_selector |> print_endline;
+  [%expect {| Universal_selector |}]
+
+let%expect_test "parse_selector" =
+  let selector, _ =
+    ".alert {color: red;}" |> Tokenizer.tokenize |> parse_selector
+  in
+  selector |> string_of_selector |> print_endline;
+  [%expect {| Class_selector(alert) |}]
 
 let parse_comma_separated_selectors tokens =
   let rec acc selectors rest =
