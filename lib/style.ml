@@ -4,7 +4,7 @@ let rec string_of_style ?(indent = "") = function
   | Style (dom_node, rules, style_children) ->
       let dom_string = Dom.Parser.string_of_node !dom_node in
       let rules_string =
-        rules |> List.map Css.Parser.string_of_rule |> String.concat "; "
+        rules |> List.map Css.Node.string_of_rule |> String.concat "; "
       in
       let style_children_str =
         style_children

@@ -24,12 +24,3 @@ let%expect_test "chars_to_string chars" =
 let%expect_test "chars_to_string empty chars" =
   chars_to_string [] |> print_endline;
   [%expect {| |}]
-
-let rec join strings =
-  match strings with
-  | [] -> ""
-  | head :: rest -> head ^ join rest
-
-let%expect_test "join strings" =
-  join [ "ap"; "p"; "le" ] |> print_endline;
-  [%expect {| apple |}]
