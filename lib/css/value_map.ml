@@ -28,16 +28,14 @@ let rec lookup keys default_value map =
       try find key map with Not_found -> lookup rest default_value map)
 
 let%expect_test "lookup" =
-  let open Node in
-  let value = Size (12., Px) in
+  let value = Node.Size (12., Px) in
   empty |> add "padding" value
   |> lookup [ "padding-left"; "padding" ] (Keyword "default")
-  |> string_of_value |> print_endline;
+  |> Node.string_of_value |> print_endline;
   [%expect {| 12. px |}]
 
 let%expect_test "lookup" =
-  let open Node in
   empty
   |> lookup [ "padding-left"; "padding" ] (Keyword "default")
-  |> string_of_value |> print_endline;
+  |> Node.string_of_value |> print_endline;
   [%expect {| default |}]

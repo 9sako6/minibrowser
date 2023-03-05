@@ -4,6 +4,8 @@ type selector =
 
 type size_unit = Px
 
+exception Invalid_size_value of string
+
 type value =
   | Keyword of string
   | Size of float * size_unit
@@ -17,6 +19,22 @@ let string_of_value = function
   | Size (size, unit) -> (
       match unit with
       | Px -> Printf.sprintf "%s px" (string_of_float size))
+
+let get_size_value value =
+  match value with
+  | Size (size, _) -> size
+  | _ -> Invalid_size_value (string_of_value value) |> raise
+
+let ( + ) left right =
+  match (left, right) with
+  | Size (left_size, _), Size (right_size, _) ->
+      Size (left_size +. right_size, Px)
+  | _ ->
+      let message =
+        Printf.sprintf "left: %s, right: %s" (string_of_value left)
+          (string_of_value right)
+      in
+      raise (Invalid_size_value message)
 
 let string_of_declaration = function
   | Declaration (name, value) ->

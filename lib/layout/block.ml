@@ -39,46 +39,69 @@ let get_style_map block =
   Calculate the width of a block-level non-replaced element in normal flow.
   Sets the horizontal margin, padding, border, and the `width`.
 *)
-(* let calculate_block_width block =
-   let style_map = get_style_map block in
-   let width =
-     try Style.Value_map.find "width" style_map |> float_of_string
-     with Not_found -> (* TODO *) 100.
-   in
-   let padding_left =
-     Style.Value_map.lookup [ "padding-left"; "padding" ] "0" style_map
-     |> float_of_string
-   in
-   let padding_right =
-     Style.Value_map.lookup [ "padding-right"; "padding" ] "0" style_map
-     |> float_of_string
-   in
-   let border_left =
-     Style.Value_map.lookup [ "border-left-width"; "border" ] "0" style_map
-     |> float_of_string
-   in
-   let border_right =
-     Style.Value_map.lookup [ "border-right-width"; "border" ] "0" style_map
-     |> float_of_string
-   in
-   let margin_left =
-     Style.Value_map.lookup [ "margin-left"; "margin" ] "0" style_map
-     |> float_of_string
-   in
-   let margin_right =
-     Style.Value_map.lookup [ "margin-right"; "margin" ] "0" style_map
-     |> float_of_string
-   in
-   List.fold_left ( +. ) 0.
-     [
-       width;
-       padding_left;
-       padding_right;
-       border_left;
-       border_right;
-       margin_left;
-       margin_right;
-     ] *)
+let calculate_block_width block =
+  let style_map = get_style_map block in
+  let sum_values values =
+    values |> List.fold_left Css.Node.( + ) (Css.Node.Size (0., Px))
+  in
+  let width =
+    try Css.Value_map.find "width" style_map
+    with Not_found -> Css.Node.Keyword "auto"
+  in
+  let padding_left =
+    Css.Value_map.lookup
+      [ "padding-left"; "padding" ]
+      Css.Node.(Size (0., Px))
+      style_map
+  in
+
+  let padding_right =
+    Css.Value_map.lookup
+      [ "padding-right"; "padding" ]
+      Css.Node.(Size (0., Px))
+      style_map
+  in
+
+  let border_left =
+    Css.Value_map.lookup
+      [ "border-left-width"; "border" ]
+      Css.Node.(Size (0., Px))
+      style_map
+  in
+
+  let border_right =
+    Css.Value_map.lookup
+      [ "border-right-width"; "border" ]
+      Css.Node.(Size (0., Px))
+      style_map
+  in
+
+  let margin_left =
+    Css.Value_map.lookup
+      [ "margin-left"; "margin" ]
+      Css.Node.(Size (0., Px))
+      style_map
+  in
+
+  let margin_right =
+    Css.Value_map.lookup
+      [ "margin-right"; "margin" ]
+      Css.Node.(Size (0., Px))
+      style_map
+  in
+
+  if width = Keyword "auto" then 0.
+  else
+    [
+      width;
+      padding_left;
+      padding_right;
+      border_left;
+      border_right;
+      margin_left;
+      margin_right;
+    ]
+    |> sum_values |> Css.Node.get_size_value
 
 let calculate_block_height _block = 0.
 let calculate_block_position _block = 0.
