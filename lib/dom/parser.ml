@@ -2,7 +2,6 @@ open Tokenizer
 open Node
 
 exception NoEndTag
-exception Unexpected
 
 let omit_end_tag_tokens tokens =
   match Base.List.rev tokens with
@@ -31,7 +30,7 @@ let parse_children_tokens tokens =
         | _, 0 -> split 0 (children @ [ head ]) rest
         | _ ->
             if score > 0 then split score (children @ [ head ]) rest
-            else raise Unexpected)
+            else raise NoEndTag)
   in
 
   let children_tokens, rest = split 1 [] tokens in
