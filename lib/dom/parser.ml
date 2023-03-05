@@ -22,17 +22,18 @@ let parse_children_tokens tokens =
     | "<" :: "/" :: rest -> split (score - 1) (children @ [ "<"; "/" ]) rest
     (* Each time a tag is opened, the score is incremented. *)
     | "<" :: rest -> split (score + 1) (children @ [ "<" ]) rest
-    | head :: rest ->
-        if score = 0 then
-          match head with
-          | ">" ->
-              (* Omit parent's end tag. *)
-              let children_tokens = children @ [ ">" ] |> omit_end_tag_tokens in
-              (children_tokens, rest)
-          | _ -> split 0 (children @ [ head ]) rest
-        else if score > 0 then split score (children @ [ head ]) rest
-        else raise Unexpected
+    | head :: rest -> (
+        match (head, score) with
+        | ">", 0 ->
+            (* Omit parent's end tag. *)
+            let children_tokens = children @ [ ">" ] |> omit_end_tag_tokens in
+            (children_tokens, rest)
+        | _, 0 -> split 0 (children @ [ head ]) rest
+        | _ ->
+            if score > 0 then split score (children @ [ head ]) rest
+            else raise Unexpected)
   in
+
   let children_tokens, rest = split 1 [] tokens in
   (children_tokens, rest)
 
