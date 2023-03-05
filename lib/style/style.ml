@@ -146,11 +146,11 @@ let%expect_test "create" =
       --
       Style
       Element(div; [id="foo"; class="alert"])
-      font-size: 12px;
+      font-size: 12. px;
         --
         Style
         InnerText("hello")
-        font-size: 12px;
+        font-size: 12. px;
     |}]
 
 let%expect_test "create" =
@@ -169,19 +169,19 @@ let%expect_test "create" =
       --
       Style
       Element(div; [id="foo"; class="alert"])
-      color: tomato; font-size: 12px;
+      color: tomato; font-size: 12. px;
         --
         Style
         InnerText("hello")
-        font-size: 12px;
+        font-size: 12. px;
         --
         Style
         Element(p; [])
-        font-size: 12px;
+        font-size: 12. px;
           --
           Style
           InnerText("child")
-          font-size: 12px;
+          font-size: 12. px;
     |}]
 
 let%expect_test "create node with conflicted CSS rules" =
