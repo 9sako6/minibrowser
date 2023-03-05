@@ -106,7 +106,7 @@ let calculate_block_width block =
 let calculate_block_height _block = 0.
 let calculate_block_position _block = 0.
 
-let rec create style =
+let rec build style =
   match style with
   | Style.{ node = _; specified_values = _; children } as style_node ->
       let rect = { x = 0.; y = 0.; width = 200.; height = 100. } in
@@ -120,4 +120,4 @@ let rec create style =
         (* if display_type = "inline" then Inline (ref style_node)
            else Block (ref style_node) *)
       in
-      { box; box_type; children = List.map create children }
+      { box; box_type; children = List.map build children }

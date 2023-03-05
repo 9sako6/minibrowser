@@ -55,7 +55,7 @@ let parse_attributes tokens =
     | [] -> (attributes, [])
     | ">" :: rest -> (attributes, rest)
     | name :: "=" :: "\"" :: value :: "\"" :: rest ->
-        let attribute = Attribute.create name value in
+        let attribute = Attribute.build name value in
         acc (attributes @ [ attribute ]) rest
     | _ -> ([], rest)
   in

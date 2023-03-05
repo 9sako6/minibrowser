@@ -93,7 +93,7 @@ let add_rules rules map =
   let map, _ = acc map rules in
   map
 
-let rec create stylesheet dom_node_ref =
+let rec build stylesheet dom_node_ref =
   let matched_rules =
     match stylesheet with
     | Css.Node.Stylesheet rules -> List.filter (matches !dom_node_ref) rules
@@ -104,13 +104,13 @@ let rec create stylesheet dom_node_ref =
     | InnerText _ -> []
   in
   let style_children =
-    node_children |> List.map ref |> List.map (create stylesheet)
+    node_children |> List.map ref |> List.map (build stylesheet)
   in
   let map = Css.Value_map.empty in
   let map = add_rules matched_rules map in
   { node = dom_node_ref; specified_values = map; children = style_children }
 
-let%expect_test "create" =
+let%expect_test "build" =
   let dom_node_ref =
     "<div id=\"foo\" class=\"alert\">hello</div>" |> Dom.Tokenizer.tokenize
     |> Dom.Parser.parse |> List.hd |> ref
@@ -118,7 +118,7 @@ let%expect_test "create" =
   let stylesheet =
     ".alert {color: tomato;}" |> Css.Tokenizer.tokenize |> Css.Parser.parse
   in
-  let style = create stylesheet dom_node_ref in
+  let style = build stylesheet dom_node_ref in
   style |> string_of_style |> print_endline;
   [%expect
     {|
@@ -131,7 +131,7 @@ let%expect_test "create" =
         InnerText("hello")
     |}]
 
-let%expect_test "create" =
+let%expect_test "build" =
   let dom_node_ref =
     "<div id=\"foo\" class=\"alert\">hello</div>" |> Dom.Tokenizer.tokenize
     |> Dom.Parser.parse |> List.hd |> ref
@@ -139,7 +139,7 @@ let%expect_test "create" =
   let stylesheet =
     "* {font-size: 12px;}" |> Css.Tokenizer.tokenize |> Css.Parser.parse
   in
-  let style = create stylesheet dom_node_ref in
+  let style = build stylesheet dom_node_ref in
   style |> string_of_style |> print_endline;
   [%expect
     {|
@@ -153,7 +153,7 @@ let%expect_test "create" =
         font-size: 12. px;
     |}]
 
-let%expect_test "create" =
+let%expect_test "build" =
   let dom_node_ref =
     "<div id=\"foo\" class=\"alert\">hello<p>child</p></div>"
     |> Dom.Tokenizer.tokenize |> Dom.Parser.parse |> List.hd |> ref
@@ -162,7 +162,7 @@ let%expect_test "create" =
     ".alert {color: tomato;} * {font-size: 12px;}" |> Css.Tokenizer.tokenize
     |> Css.Parser.parse
   in
-  let style = create stylesheet dom_node_ref in
+  let style = build stylesheet dom_node_ref in
   style |> string_of_style |> print_endline;
   [%expect
     {|
@@ -184,7 +184,7 @@ let%expect_test "create" =
           font-size: 12. px;
     |}]
 
-let%expect_test "create node with conflicted CSS rules" =
+let%expect_test "build node with conflicted CSS rules" =
   let dom_node_ref =
     "<div class=\"block\">hello</div>" |> Dom.Tokenizer.tokenize
     |> Dom.Parser.parse |> List.hd |> ref
@@ -193,7 +193,7 @@ let%expect_test "create node with conflicted CSS rules" =
     ".block {display: block;} * {display: inline;}" |> Css.Tokenizer.tokenize
     |> Css.Parser.parse
   in
-  let style = create stylesheet dom_node_ref in
+  let style = build stylesheet dom_node_ref in
   style |> string_of_style |> print_endline;
   [%expect
     {|
