@@ -1,4 +1,5 @@
 exception Invalid_size_value of string
+exception Invalid_value of string
 
 type size_unit = Px
 
@@ -30,3 +31,18 @@ let ( + ) left right =
 let%expect_test "( + )" =
   Size (10., Px) + Size (2., Px) |> to_string |> print_endline;
   [%expect {| 12. px |}]
+
+let build tokens =
+  let px_regexp = Str.regexp "[0-9]+px" in
+  let number_regexp = Str.regexp "[0-9]+" in
+  match tokens with
+  | head :: _ -> (
+      match
+        ( Str.string_match px_regexp head 0,
+          Str.string_match number_regexp head 0 )
+      with
+      | true, true ->
+          let size = head |> Str.matched_string |> float_of_string in
+          Size (size, Px)
+      | _ -> Keyword (String.concat "" tokens))
+  | [] -> Invalid_value (String.concat "" tokens) |> raise

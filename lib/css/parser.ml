@@ -2,24 +2,6 @@ open Node
 
 exception Invalid_declaration
 exception Unknown_selector
-exception Invalid_size_value of string
-
-let build_value tokens =
-  let build_px_size_value token =
-    let number_regexp = Str.regexp "[0-9-]+" in
-    let size =
-      if Str.string_match number_regexp token 0 then
-        Str.matched_string token |> float_of_string
-      else Invalid_size_value token |> raise
-    in
-    Value.Size (size, Px)
-  in
-
-  let first_token = List.hd tokens in
-  let px_size_regexp = Str.regexp "[0-9-]+px" in
-  if Str.string_match px_size_regexp first_token 0 then
-    build_px_size_value first_token
-  else Keyword (String.concat "" tokens)
 
 let parse_declaration tokens =
   match tokens with
@@ -31,7 +13,7 @@ let parse_declaration tokens =
         | [] -> (value_tokens, [])
       in
       let value_tokens, rest = parse_declaration_value [] rest in
-      (Declaration (name, build_value value_tokens), rest)
+      (Declaration (name, Value.build value_tokens), rest)
   | _ -> raise Invalid_declaration
 
 let%expect_test "parse_declaration" =
