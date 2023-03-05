@@ -2,10 +2,6 @@ type selector =
   | Universal_selector
   | Class_selector of string
 
-type size_unit = Px
-
-exception Invalid_size_value of string
-
 type declaration = Declaration of string * Value.t
 type rule = Rule of selector list * declaration list
 type stylesheet = Stylesheet of rule list
