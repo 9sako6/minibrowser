@@ -46,3 +46,15 @@ let build tokens =
           Size (size, Px)
       | _ -> Keyword (String.concat "" tokens))
   | [] -> Invalid_value (String.concat "" tokens) |> raise
+
+let%expect_test "build" =
+  [ "12px" ] |> build |> to_string |> print_endline;
+  [%expect {| 12. px |}]
+
+let%expect_test "build" =
+  [ "#"; "191919" ] |> build |> to_string |> print_endline;
+  [%expect {| #191919 |}]
+
+let%expect_test "build" =
+  [ "inline" ] |> build |> to_string |> print_endline;
+  [%expect {| inline |}]
