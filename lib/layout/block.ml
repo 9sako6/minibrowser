@@ -24,10 +24,10 @@ type box_type =
   | Block of Style.t ref
   | Anonymous
 
-type block = {
+type t = {
   box : box;
   box_type : box_type;
-  children : block list;
+  children : t list;
 }
 
 let calculate_block_width _block = 0.
