@@ -42,51 +42,51 @@ let get_style_map block =
 let calculate_block_width block =
   let style_map = get_style_map block in
   let sum_values values =
-    values |> List.fold_left Css.Node.( + ) (Css.Node.Size (0., Px))
+    values |> List.fold_left Css.Value.( + ) (Css.Value.Size (0., Px))
   in
   let width =
     try Css.Value_map.find "width" style_map
-    with Not_found -> Css.Node.Keyword "auto"
+    with Not_found -> Css.Value.Keyword "auto"
   in
   let padding_left =
     Css.Value_map.lookup
       [ "padding-left"; "padding" ]
-      Css.Node.(Size (0., Px))
+      Css.Value.(Size (0., Px))
       style_map
   in
 
   let padding_right =
     Css.Value_map.lookup
       [ "padding-right"; "padding" ]
-      Css.Node.(Size (0., Px))
+      Css.Value.(Size (0., Px))
       style_map
   in
 
   let border_left =
     Css.Value_map.lookup
       [ "border-left-width"; "border" ]
-      Css.Node.(Size (0., Px))
+      Css.Value.(Size (0., Px))
       style_map
   in
 
   let border_right =
     Css.Value_map.lookup
       [ "border-right-width"; "border" ]
-      Css.Node.(Size (0., Px))
+      Css.Value.(Size (0., Px))
       style_map
   in
 
   let margin_left =
     Css.Value_map.lookup
       [ "margin-left"; "margin" ]
-      Css.Node.(Size (0., Px))
+      Css.Value.(Size (0., Px))
       style_map
   in
 
   let margin_right =
     Css.Value_map.lookup
       [ "margin-right"; "margin" ]
-      Css.Node.(Size (0., Px))
+      Css.Value.(Size (0., Px))
       style_map
   in
 
@@ -101,7 +101,7 @@ let calculate_block_width block =
       margin_left;
       margin_right;
     ]
-    |> sum_values |> Css.Node.get_size_value
+    |> sum_values |> Css.Value.get_size_value
 
 let calculate_block_height _block = 0.
 let calculate_block_position _block = 0.

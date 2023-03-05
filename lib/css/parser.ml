@@ -12,7 +12,7 @@ let build_value tokens =
         Str.matched_string token |> float_of_string
       else Invalid_size_value token |> raise
     in
-    Size (size, Px)
+    Value.Size (size, Px)
   in
 
   let first_token = List.hd tokens in

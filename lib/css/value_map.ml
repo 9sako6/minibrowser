@@ -1,6 +1,6 @@
 module Value_map = Map.Make (String)
 
-type t = Node.value Value_map.t
+type t = Value.t Value_map.t
 
 let empty : t = Value_map.empty
 let find key (map : t) = Value_map.find key map
@@ -13,9 +13,7 @@ let to_string map =
     match bindings with
     | [] -> (strings, [])
     | (name, value) :: rest ->
-        let string =
-          Printf.sprintf "%s: %s;" name (Node.string_of_value value)
-        in
+        let string = Printf.sprintf "%s: %s;" name (Value.to_string value) in
         acc (strings @ [ string ]) rest
   in
   let strings, _ = acc [] bindings in
@@ -28,14 +26,14 @@ let rec lookup keys default_value map =
       try find key map with Not_found -> lookup rest default_value map)
 
 let%expect_test "lookup" =
-  let value = Node.Size (12., Px) in
+  let value = Value.Size (12., Px) in
   empty |> add "padding" value
   |> lookup [ "padding-left"; "padding" ] (Keyword "default")
-  |> Node.string_of_value |> print_endline;
+  |> Value.to_string |> print_endline;
   [%expect {| 12. px |}]
 
 let%expect_test "lookup" =
   empty
   |> lookup [ "padding-left"; "padding" ] (Keyword "default")
-  |> Node.string_of_value |> print_endline;
+  |> Value.to_string |> print_endline;
   [%expect {| default |}]
