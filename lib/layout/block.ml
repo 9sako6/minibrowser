@@ -33,7 +33,7 @@ type t = {
 let get_style_map block =
   match block.box_type with
   | Inline style_ref | Block style_ref -> !style_ref.specified_values
-  | Anonymous -> Style.Value_map.empty
+  | Anonymous -> Css.Value_map.empty
 
 (*
   Calculate the width of a block-level non-replaced element in normal flow.
