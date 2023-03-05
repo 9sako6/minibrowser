@@ -8,6 +8,8 @@ type t = {
   children : t list;
 }
 
+let find key (map: style_map) = Style_map.find key map
+
 let string_of_style_map map =
   let bindings = Style_map.bindings map in
   let rec acc strings bindings =
