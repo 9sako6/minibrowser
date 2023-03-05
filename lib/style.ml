@@ -1,18 +1,36 @@
-type t = Style of Dom.Node.t ref * Css.Node.rule list * t list
+module Style_map = Map.Make (String)
+
+type style_map = string Style_map.t
+
+type t = {
+  node : Dom.Node.t ref;
+  specified_values : style_map;
+  children : t list;
+}
+
+let string_of_style_map map =
+  let bindings = Style_map.bindings map in
+  let rec acc strings bindings =
+    match bindings with
+    | [] -> (strings, [])
+    | (name, value) :: rest ->
+        let string = Printf.sprintf "%s: %s;" name value in
+        acc (strings @ [ string ]) rest
+  in
+  let strings, _ = acc [] bindings in
+  String.concat " " strings
 
 let rec string_of_style ?(indent = "") = function
-  | Style (dom_node, rules, style_children) ->
+  | { node = dom_node; specified_values = map; children } ->
       let dom_string = Dom.Node.string_of_node !dom_node in
-      let rules_string =
-        rules |> List.map Css.Node.string_of_rule |> String.concat "; "
-      in
-      let style_children_str =
-        style_children
+      let map_string = string_of_style_map map in
+      let children_string =
+        children
         |> List.map (string_of_style ~indent:(indent ^ "  "))
         |> String.concat ""
       in
       Printf.sprintf "%s--\n%sStyle\n%s%s\n%s%s\n%s" indent indent indent
-        dom_string indent rules_string style_children_str
+        dom_string indent map_string children_string
 
 (* any of the attributes match the selectors *)
 let matches dom_node rule =
@@ -68,6 +86,29 @@ let%expect_test "matches" =
   matches dom_node rule |> string_of_bool |> print_endline;
   [%expect {| false |}]
 
+let add_rule rule map =
+  let declarations =
+    match rule with
+    | Css.Node.Rule (_, declarations) -> declarations
+  in
+  let rec acc map declarations =
+    match declarations with
+    | [] -> (map, [])
+    | Css.Node.Declaration (name, value) :: rest ->
+        acc (Style_map.add name value map) rest
+  in
+  let map, _ = acc map declarations in
+  map
+
+let add_rules rules map =
+  let rec acc map rules =
+    match rules with
+    | [] -> (map, [])
+    | rule :: rest -> acc (add_rule rule map) rest
+  in
+  let map, _ = acc map rules in
+  map
+
 let rec create stylesheet dom_node_ref =
   let matched_rules =
     match stylesheet with
@@ -81,7 +122,9 @@ let rec create stylesheet dom_node_ref =
   let style_children =
     node_children |> List.map ref |> List.map (create stylesheet)
   in
-  Style (dom_node_ref, matched_rules, style_children)
+  let map = Style_map.empty in
+  let map = add_rules matched_rules map in
+  { node = dom_node_ref; specified_values = map; children = style_children }
 
 let%expect_test "create" =
   let dom_node_ref =
@@ -98,7 +141,7 @@ let%expect_test "create" =
       --
       Style
       Element(div; [id="foo"; class="alert"])
-      Rule([Class_selector(alert)], [Declaration(color: tomato)])
+      color: tomato;
         --
         Style
         InnerText("hello")
@@ -119,11 +162,11 @@ let%expect_test "create" =
       --
       Style
       Element(div; [id="foo"; class="alert"])
-      Rule([Universal_selector], [Declaration(font-size: 12px)])
+      font-size: 12px;
         --
         Style
         InnerText("hello")
-        Rule([Universal_selector], [Declaration(font-size: 12px)])
+        font-size: 12px;
     |}]
 
 let%expect_test "create" =
@@ -142,17 +185,40 @@ let%expect_test "create" =
       --
       Style
       Element(div; [id="foo"; class="alert"])
-      Rule([Class_selector(alert)], [Declaration(color: tomato)]); Rule([Universal_selector], [Declaration(font-size: 12px)])
+      color: tomato; font-size: 12px;
         --
         Style
         InnerText("hello")
-        Rule([Universal_selector], [Declaration(font-size: 12px)])
+        font-size: 12px;
         --
         Style
         Element(p; [])
-        Rule([Universal_selector], [Declaration(font-size: 12px)])
+        font-size: 12px;
           --
           Style
           InnerText("child")
-          Rule([Universal_selector], [Declaration(font-size: 12px)])
+          font-size: 12px;
+    |}]
+
+let%expect_test "create node with conflicted CSS rules" =
+  let dom_node_ref =
+    "<div class=\"block\">hello</div>" |> Dom.Tokenizer.tokenize
+    |> Dom.Parser.parse |> List.hd |> ref
+  in
+  let stylesheet =
+    ".block {display: block;} * {display: inline;}" |> Css.Tokenizer.tokenize
+    |> Css.Parser.parse
+  in
+  let style = create stylesheet dom_node_ref in
+  style |> string_of_style |> print_endline;
+  [%expect
+    {|
+      --
+      Style
+      Element(div; [class="block"])
+      display: inline;
+        --
+        Style
+        InnerText("hello")
+        display: inline;
     |}]
