@@ -42,7 +42,7 @@ let rec create style =
       let border = { top = 0.; right = 0.; bottom = 0.; left = 0. } in
       let margin = { top = 0.; right = 0.; bottom = 0.; left = 0. } in
       let box = { rect; padding; border; margin } in
-      let display_type = Style.find "display" specified_values in
+      let display_type = Style.Value_map.find "display" specified_values in
       let box_type =
         if display_type = "inline" then Inline (ref style_node)
         else Block (ref style_node)

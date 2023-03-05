@@ -1,31 +1,13 @@
-module Style_map = Map.Make (String)
-
-type style_map = string Style_map.t
-
 type t = {
   node : Dom.Node.t ref;
-  specified_values : style_map;
+  specified_values : Value_map.t;
   children : t list;
 }
-
-let find key (map: style_map) = Style_map.find key map
-
-let string_of_style_map map =
-  let bindings = Style_map.bindings map in
-  let rec acc strings bindings =
-    match bindings with
-    | [] -> (strings, [])
-    | (name, value) :: rest ->
-        let string = Printf.sprintf "%s: %s;" name value in
-        acc (strings @ [ string ]) rest
-  in
-  let strings, _ = acc [] bindings in
-  String.concat " " strings
 
 let rec string_of_style ?(indent = "") = function
   | { node = dom_node; specified_values = map; children } ->
       let dom_string = Dom.Node.string_of_node !dom_node in
-      let map_string = string_of_style_map map in
+      let map_string = Value_map.to_string map in
       let children_string =
         children
         |> List.map (string_of_style ~indent:(indent ^ "  "))
@@ -97,7 +79,7 @@ let add_rule rule map =
     match declarations with
     | [] -> (map, [])
     | Css.Node.Declaration (name, value) :: rest ->
-        acc (Style_map.add name value map) rest
+        acc (Value_map.add name value map) rest
   in
   let map, _ = acc map declarations in
   map
@@ -124,7 +106,7 @@ let rec create stylesheet dom_node_ref =
   let style_children =
     node_children |> List.map ref |> List.map (create stylesheet)
   in
-  let map = Style_map.empty in
+  let map = Value_map.empty in
   let map = add_rules matched_rules map in
   { node = dom_node_ref; specified_values = map; children = style_children }
 
@@ -224,3 +206,5 @@ let%expect_test "create node with conflicted CSS rules" =
         InnerText("hello")
         display: inline;
     |}]
+
+module Value_map = Value_map
