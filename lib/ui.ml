@@ -3,8 +3,8 @@ open Bogue
 let rec build_from_layout_box layout_box =
   match layout_box with
   | Layout_box.Node.{ box; box_type; style_ref; children } ->
-      let _width = box.rect.width in
-      let _height = box.rect.height in
+      let width = box.rect.width |> int_of_float in
+      let height = box.rect.height |> int_of_float in
       let children_layout_boxes = List.map build_from_layout_box children in
       let layout =
         match !(!style_ref.node) with
@@ -21,6 +21,7 @@ let rec build_from_layout_box layout_box =
             | Anonymous -> Layout.tower ([ text_label ] @ children_layout_boxes)
             )
       in
+      Layout.set_size layout (width, height);
       layout
 
 let build html_string css_string =
