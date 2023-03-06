@@ -155,7 +155,7 @@ let empty style_ref =
 (* Build layout tree from style tree. *)
 let rec build style =
   match style with
-  | Style.{ node = _; specified_values; children } as style_node ->
+  | Style_node.{ node = _; specified_values; children } as style_node ->
       let block = empty (ref style_node) in
       let box_type =
         try
@@ -177,7 +177,7 @@ let%expect_test "build" =
     ".container {display: block; width: 200px; height: 100px;}"
     |> Css.Tokenizer.tokenize |> Css.Parser.parse
   in
-  let style_nodes = dom_nodes |> List.map ref |> List.map (Style.build css) in
+  let style_nodes = dom_nodes |> List.map ref |> List.map (Style_node.build css) in
   let layout_nodes = style_nodes |> List.map build in
   layout_nodes |> List.map to_string |> List.iter print_endline;
   [%expect

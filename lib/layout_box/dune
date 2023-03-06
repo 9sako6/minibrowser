@@ -1,6 +1,6 @@
 (library
- (name style)
- (libraries css dom)
+ (name layout_box)
+ (libraries style_node)
  (inline_tests)
  (preprocess
   (pps ppx_expect)))

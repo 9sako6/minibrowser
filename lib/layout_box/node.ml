@@ -27,7 +27,7 @@ type box_type =
 type t = {
   box : box;
   box_type : box_type;
-  style_ref : Style.t ref;
+  style_ref : Style_node.t ref;
   children : t list;
 }
 
