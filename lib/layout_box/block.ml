@@ -94,6 +94,7 @@ let rec build ?(parent_width = 0.) ?(parent_height = 0.) style =
             children;
       }
 
+(* TODO: Fix test *)
 let%expect_test "build" =
   let dom_nodes =
     "<div class=\"container\"><p>alice</p><p>bob</p></div>"
@@ -115,7 +116,7 @@ let%expect_test "build" =
         rect = {x = 0.00; y = 0.00; width = 200.00; height = 100.00;}
         padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
         border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
-        margin = {top = 0.00; right = -200.00; bottom = 0.00; left = 0.00;}
+        margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
       }
         Element("p") = Inline
         {

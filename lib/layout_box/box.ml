@@ -114,7 +114,7 @@ let width_calculated_box ~width ~padding_left ~padding_right ~border_left
         (margin_left, margin_right)
     | _ -> (margin_left, margin_right)
   in
-  let underflow = box.rect.width -. total in
+  let underflow = (get_size_value width) -. total in
   let width, margin_left, margin_right =
     match (width = auto, margin_left = auto, margin_right = auto) with
     (* If the values are overconstrained, calculate margin_right. *)
@@ -134,10 +134,10 @@ let width_calculated_box ~width ~padding_left ~padding_right ~border_left
           if margin_right = auto then Size (0., Px) else margin_right
         in
         let width, margin_right =
-          match underflow > 0. with
+          match underflow >= 0. with
           | true -> (Size (underflow, Px), margin_right)
           (* Width can't be negative. Adjust the right margin instead. *)
-          | false -> (width, Size (-.underflow, Px))
+          | false -> (Size (0., Px), margin_right + Size (underflow, Px))
         in
         (width, margin_left, margin_right)
   in
@@ -184,7 +184,7 @@ let%expect_test "width_calculated_box" =
         rect = {x = 0.00; y = 0.00; width = 100.00; height = 0.00;}
         padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
         border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
-        margin = {top = 0.00; right = -100.00; bottom = 0.00; left = 0.00;}
+        margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
       }
   |}]
 
