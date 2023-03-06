@@ -50,34 +50,34 @@ let%expect_test "parse_children_tokens" =
   |}]
 
 let parse_attributes tokens =
-  let rec acc attributes rest =
+  let rec aux attributes rest =
     match rest with
     | [] -> (attributes, [])
     | ">" :: rest -> (attributes, rest)
     | name :: "=" :: "\"" :: value :: "\"" :: rest ->
         let attribute = Attribute.build name value in
-        acc (attributes @ [ attribute ]) rest
+        aux (attributes @ [ attribute ]) rest
     | _ -> ([], rest)
   in
-  acc [] tokens
+  aux [] tokens
 
 let rec parse tokens =
-  let rec acc nodes rest =
+  let rec aux nodes rest =
     match rest with
     | [] -> (nodes, [])
     (* Start of a tag *)
     | "<" :: tag_name :: rest ->
         let attributes, rest = parse_attributes rest in
         let children_tokens, rest = parse_children_tokens rest in
-        acc
+        aux
           (nodes @ [ Element (tag_name, attributes, parse children_tokens) ])
           rest
     (* End of a tag *)
     | text :: "<" :: "/" :: _ :: ">" :: rest
     (* Inner text *)
-    | text :: rest -> acc (nodes @ [ InnerText text ]) rest
+    | text :: rest -> aux (nodes @ [ InnerText text ]) rest
   in
-  let nodes, _ = acc [] tokens in
+  let nodes, _ = aux [] tokens in
   nodes
 
 let%test "parse 1 tag" =

@@ -9,14 +9,14 @@ let add key value (map : t) = Value_map.add key value map
 
 let to_string map =
   let bindings = Value_map.bindings map in
-  let rec acc strings bindings =
+  let rec aux bindings acc =
     match bindings with
-    | [] -> (strings, [])
+    | [] -> (acc, [])
     | (name, value) :: rest ->
         let string = Printf.sprintf "%s: %s;" name (Value.to_string value) in
-        acc (strings @ [ string ]) rest
+        aux rest (acc @ [ string ])
   in
-  let strings, _ = acc [] bindings in
+  let strings, _ = aux bindings [] in
   String.concat " " strings
 
 let rec lookup keys default_value map =

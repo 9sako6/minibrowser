@@ -33,18 +33,18 @@ let%expect_test "tokenize_chunk" =
   |}]
 
 let tokenize input_string =
-  let rec acc tokens chars =
+  let rec aux tokens chars =
     match chars with
     | [] -> (tokens, [])
-    | ' ' :: rest | '\n' :: rest -> acc tokens rest
+    | ' ' :: rest | '\n' :: rest -> aux tokens rest
     | '<' :: rest | '>' :: rest | '/' :: rest | '=' :: rest | '"' :: rest ->
         let token = List.hd chars |> Base.String.of_char in
-        acc (tokens @ [ token ]) rest
+        aux (tokens @ [ token ]) rest
     | _ ->
         let chunk, rest = tokenize_chunk chars in
-        acc (tokens @ [ chunk ]) rest
+        aux (tokens @ [ chunk ]) rest
   in
-  let tokens, _ = acc [] (Base.String.to_list input_string) in
+  let tokens, _ = aux [] (Base.String.to_list input_string) in
   tokens
 
 let%expect_test "tokenize a tag" =

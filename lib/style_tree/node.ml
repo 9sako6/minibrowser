@@ -75,22 +75,22 @@ let add_rule rule map =
     match rule with
     | Css.Node.Rule (_, declarations) -> declarations
   in
-  let rec acc map declarations =
+  let rec aux map declarations =
     match declarations with
     | [] -> (map, [])
     | Css.Node.Declaration (name, value) :: rest ->
-        acc (Css.Value_map.add name value map) rest
+        aux (Css.Value_map.add name value map) rest
   in
-  let map, _ = acc map declarations in
+  let map, _ = aux map declarations in
   map
 
 let add_rules rules map =
-  let rec acc map rules =
+  let rec aux map rules =
     match rules with
     | [] -> (map, [])
-    | rule :: rest -> acc (add_rule rule map) rest
+    | rule :: rest -> aux (add_rule rule map) rest
   in
-  let map, _ = acc map rules in
+  let map, _ = aux map rules in
   map
 
 let rec build stylesheet dom_node_ref =

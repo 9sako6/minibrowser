@@ -43,15 +43,15 @@ let%expect_test "parse_declaration" =
   [%expect {| Declaration(color: #191919) |}]
 
 let parse_declarations tokens =
-  let rec acc declarations rest =
+  let rec aux declarations rest =
     match rest with
-    | "{" :: rest -> acc declarations rest
+    | "{" :: rest -> aux declarations rest
     | "}" :: _ -> (declarations, rest)
     | _ ->
         let declaration, rest = parse_declaration rest in
-        acc (declarations @ [ declaration ]) rest
+        aux (declarations @ [ declaration ]) rest
   in
-  acc [] tokens
+  aux [] tokens
 
 let%expect_test "parse_declarations" =
   let declarations, rest =
@@ -99,14 +99,14 @@ let%expect_test "parse_selector" =
   [%expect {| Class_selector(alert) |}]
 
 let parse_comma_separated_selectors tokens =
-  let rec acc selectors rest =
+  let rec aux selectors rest =
     match rest with
     | "{" :: _ -> (selectors, rest)
     | _ ->
         let selector, rest = parse_selector rest in
-        acc (selectors @ [ selector ]) rest
+        aux (selectors @ [ selector ]) rest
   in
-  let selectors, rest = acc [] tokens in
+  let selectors, rest = aux [] tokens in
   (selectors, rest)
 
 let parse_rule tokens =
@@ -122,14 +122,14 @@ let parse_rule tokens =
   (Rule (selectors, declarations), rule_rest)
 
 let parse_rules tokens =
-  let rec acc rules rest =
+  let rec aux rules rest =
     match rest with
     | [] -> (rules, [])
     | _ ->
         let rule, rest = parse_rule rest in
-        acc (rules @ [ rule ]) rest
+        aux (rules @ [ rule ]) rest
   in
-  acc [] tokens
+  aux [] tokens
 
 let parse tokens =
   let rules, _ = parse_rules tokens in
