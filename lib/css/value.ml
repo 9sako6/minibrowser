@@ -16,12 +16,16 @@ let to_string = function
 let get_size_value value =
   match value with
   | Size (size, _) -> size
+  | Keyword "auto" -> 0.
   | _ -> Invalid_size_value (to_string value) |> raise
 
 let ( + ) left right =
   match (left, right) with
   | Size (left_size, _), Size (right_size, _) ->
       Size (left_size +. right_size, Px)
+  | Size (size, _), Keyword "auto" | Keyword "auto", Size (size, _) ->
+      Size (size, Px)
+  | Keyword "auto", Keyword "auto" -> Size (0., Px)
   | _ ->
       let error_message =
         Printf.sprintf "left: %s, right: %s" (to_string left) (to_string right)
@@ -31,6 +35,10 @@ let ( + ) left right =
 let%expect_test "( + )" =
   Size (10., Px) + Size (2., Px) |> to_string |> print_endline;
   [%expect {| 12. px |}]
+
+let%expect_test "( + )" =
+  Size (10., Px) + Keyword "auto" |> to_string |> print_endline;
+  [%expect {| 10. px |}]
 
 let build tokens =
   let px_regexp = Str.regexp "[0-9]+px" in
