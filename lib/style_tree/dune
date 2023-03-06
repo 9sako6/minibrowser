@@ -1,5 +1,5 @@
 (library
- (name style_node)
+ (name style_tree)
  (libraries css dom)
  (inline_tests)
  (preprocess

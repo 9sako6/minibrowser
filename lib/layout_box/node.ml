@@ -6,7 +6,7 @@ type box_type =
 type t = {
   box : Box.t;
   box_type : box_type;
-  style_ref : Style_node.t ref;
+  style_ref : Style_tree.Node.t ref;
   children : t list;
 }
 

@@ -64,7 +64,7 @@ let position_calculated_block block =
 (* Build layout tree from style tree. *)
 let rec build ?(parent_width = 0.) ?(parent_height = 0.) style =
   match style with
-  | Style_node.{ node = _; specified_values; children } as style_node ->
+  | Style_tree.Node.{ node = _; specified_values; children } as style_node ->
       let block =
         {
           box = Box.empty ~width:parent_width ~height:parent_height ();
@@ -104,7 +104,7 @@ let%expect_test "build" =
     |> Css.Tokenizer.tokenize |> Css.Parser.parse
   in
   let style_nodes =
-    dom_nodes |> List.map ref |> List.map (Style_node.build css)
+    dom_nodes |> List.map ref |> List.map (Style_tree.Node.build css)
   in
   let layout_nodes = style_nodes |> List.map build in
   layout_nodes |> List.map to_string |> List.iter print_endline;

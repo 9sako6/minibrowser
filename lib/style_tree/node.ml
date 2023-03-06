@@ -4,13 +4,13 @@ type t = {
   children : t list;
 }
 
-let rec string_of_style ?(indent = "") = function
+let rec to_string ?(indent = "") = function
   | { node = dom_node; specified_values = map; children } ->
       let dom_string = Dom.Node.string_of_node !dom_node in
       let map_string = Css.Value_map.to_string map in
       let children_string =
         children
-        |> List.map (string_of_style ~indent:(indent ^ "  "))
+        |> List.map (to_string ~indent:(indent ^ "  "))
         |> String.concat ""
       in
       Printf.sprintf "%s--\n%sStyle\n%s%s\n%s%s\n%s" indent indent indent
@@ -119,7 +119,7 @@ let%expect_test "build" =
     ".alert {color: tomato;}" |> Css.Tokenizer.tokenize |> Css.Parser.parse
   in
   let style = build stylesheet dom_node_ref in
-  style |> string_of_style |> print_endline;
+  style |> to_string |> print_endline;
   [%expect
     {|
       --
@@ -140,7 +140,7 @@ let%expect_test "build" =
     "* {font-size: 12px;}" |> Css.Tokenizer.tokenize |> Css.Parser.parse
   in
   let style = build stylesheet dom_node_ref in
-  style |> string_of_style |> print_endline;
+  style |> to_string |> print_endline;
   [%expect
     {|
       --
@@ -163,7 +163,7 @@ let%expect_test "build" =
     |> Css.Parser.parse
   in
   let style = build stylesheet dom_node_ref in
-  style |> string_of_style |> print_endline;
+  style |> to_string |> print_endline;
   [%expect
     {|
       --
@@ -194,7 +194,7 @@ let%expect_test "build node with conflicted CSS rules" =
     |> Css.Parser.parse
   in
   let style = build stylesheet dom_node_ref in
-  style |> string_of_style |> print_endline;
+  style |> to_string |> print_endline;
   [%expect
     {|
       --

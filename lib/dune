@@ -1,6 +1,6 @@
 (library
  (name minibrowser)
- (libraries bogue str dom css style_node layout_box)
+ (libraries bogue str dom css style_tree layout_box)
  (inline_tests)
  (preprocess
   (pps ppx_expect ppx_inline_test)))
