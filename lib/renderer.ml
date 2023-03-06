@@ -34,6 +34,7 @@ let build html_string css_string =
   let layouts = List.map build_from_layout_box layout_nodes in
   Bogue.of_layout (Layout.flat layouts)
 
-let render board =
+let render html_string css_string =
+  let board = build html_string css_string in
   Bogue.run board;
   Bogue.quit ()
