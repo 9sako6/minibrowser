@@ -158,10 +158,64 @@ let rec build style =
   | Style.{ node = _; specified_values; children } as style_node ->
       let block = empty (ref style_node) in
       let box_type =
-        match Css.Value_map.find "display" specified_values with
-        | Css.Value.Keyword "block" -> Block
-        | _ -> Inline
+        try
+          match Css.Value_map.find "display" specified_values with
+          | Css.Value.Keyword "block" -> Block
+          | _ -> Inline
+        with Not_found -> Inline
       in
       let block = width_calculated_block block in
       let block = height_calculated_block block in
       { block with box_type; children = List.map build children }
+
+let%expect_test "build" =
+  let dom_nodes =
+    "<div class=\"container\"><p>alice</p><p>bob</p></div>"
+    |> Dom.Tokenizer.tokenize |> Dom.Parser.parse
+  in
+  let css =
+    ".container {display: block; width: 200px; height: 100px;}"
+    |> Css.Tokenizer.tokenize |> Css.Parser.parse
+  in
+  let style_nodes = dom_nodes |> List.map ref |> List.map (Style.build css) in
+  let layout_nodes = style_nodes |> List.map build in
+  layout_nodes |> List.map to_string |> List.iter print_endline;
+  [%expect
+    {|
+      Element("div") = Block
+      {
+        rect = {x = 0.00; y = 0.00; width = 200.00; height = 100.00;}
+        padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
+        border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
+        margin = {top = 0.00; right = -200.00; bottom = 0.00; left = 0.00;}
+      }
+        Element("p") = Inline
+        {
+          rect = {x = 0.00; y = 0.00; width = 0.00; height = 0.00;}
+          padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
+          border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
+          margin = {top = 0.00; right = -0.00; bottom = 0.00; left = 0.00;}
+        }
+          InnerText("alice") = Inline
+          {
+            rect = {x = 0.00; y = 0.00; width = 0.00; height = 0.00;}
+            padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
+            border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
+            margin = {top = 0.00; right = -0.00; bottom = 0.00; left = 0.00;}
+          }
+
+        Element("p") = Inline
+        {
+          rect = {x = 0.00; y = 0.00; width = 0.00; height = 0.00;}
+          padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
+          border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
+          margin = {top = 0.00; right = -0.00; bottom = 0.00; left = 0.00;}
+        }
+          InnerText("bob") = Inline
+          {
+            rect = {x = 0.00; y = 0.00; width = 0.00; height = 0.00;}
+            padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
+            border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
+            margin = {top = 0.00; right = -0.00; bottom = 0.00; left = 0.00;}
+          }
+  |}]

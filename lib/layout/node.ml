@@ -49,14 +49,25 @@ let%expect_test "string_of_edge" =
   |> string_of_edge |> print_endline;
   [%expect {| {top = 123.00; right = 23.10; bottom = 120.00; left = 24.00;} |}]
 
-let string_of_box box =
+let string_of_box_type = function
+  | Inline -> "Inline"
+  | Block -> "Block"
+  | Anonymous -> "Anonymus"
+
+let string_of_box ?(indent = "") box =
   let rect_string = box.rect |> string_of_rect in
   let padding_string = box.padding |> string_of_edge in
   let border_string = box.border |> string_of_edge in
   let margin_string = box.margin |> string_of_edge in
   Printf.sprintf
-    "{\n  rect = %s\n  padding = %s\n  border = %s\n  margin = %s\n}"
-    rect_string padding_string border_string margin_string
+    "%s{\n\
+     %s  rect = %s\n\
+     %s  padding = %s\n\
+     %s  border = %s\n\
+     %s  margin = %s\n\
+     %s}"
+    indent indent rect_string indent padding_string indent border_string indent
+    margin_string indent
 
 let%expect_test "string_of_box" =
   {
@@ -75,3 +86,22 @@ let%expect_test "string_of_box" =
       margin = {top = 123.00; right = 23.10; bottom = 120.00; left = 24.00;}
     }
   |}]
+
+let rec to_string ?(indent = "") = function
+  | { box; box_type; style_ref; children } ->
+      let node_string =
+        match !(!style_ref.node) with
+        | Dom.Node.Element (name, _, _) ->
+            Printf.sprintf "%sElement(\"%s\")" indent name
+        | Dom.Node.InnerText text ->
+            Printf.sprintf "%sInnerText(\"%s\")" indent text
+      in
+      let box_string = string_of_box ~indent box in
+      let box_type_string = string_of_box_type box_type in
+      let children_string =
+        children
+        |> List.map (to_string ~indent:(indent ^ "  "))
+        |> String.concat "\n"
+      in
+      Printf.sprintf "%s = %s\n%s\n%s" node_string box_type_string box_string
+        children_string
