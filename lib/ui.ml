@@ -1,33 +1,27 @@
 open Bogue
 
-let main () =
-  let b = Widget.check_box () in
-  let l = Widget.label "Hello world" in
-  let style = Style.Solid (Draw.black |> Draw.opaque) |> Style.of_bg in
-  let box = Widget.box ~w:200 ~h:100 ~style () in
-  let layout = Layout.flat_of_w [ b; l; box ] in
-
-  let board = Bogue.of_layout layout in
-  Bogue.run board
-
-let build_from_layout_box layout_box =
+let rec build_from_layout_box layout_box =
   match layout_box with
-  | Layout_box.Node.{ box; box_type = _; style_ref = _; children = _ } ->
-      let width =
-        box.rect.width +. box.padding.left +. box.padding.right
-        +. box.border.left +. box.border.right +. box.margin.left
-        +. box.margin.right
+  | Layout_box.Node.{ box; box_type; style_ref; children } ->
+      let _width = box.rect.width in
+      let _height = box.rect.height in
+      let children_layout_boxes = List.map build_from_layout_box children in
+      let layout =
+        match !(!style_ref.node) with
+        | Element (_, _, _) -> (
+            match box_type with
+            | Block -> Layout.tower children_layout_boxes
+            | Inline -> Layout.flat children_layout_boxes
+            | Anonymous -> Layout.tower children_layout_boxes)
+        | InnerText text -> (
+            let text_label = Widget.label text |> Layout.resident in
+            match box_type with
+            | Block -> Layout.tower ([ text_label ] @ children_layout_boxes)
+            | Inline -> Layout.flat ([ text_label ] @ children_layout_boxes)
+            | Anonymous -> Layout.tower ([ text_label ] @ children_layout_boxes)
+            )
       in
-      let height =
-        box.rect.height +. box.padding.top +. box.padding.bottom
-        +. box.border.top +. box.border.bottom +. box.margin.top
-        +. box.margin.bottom
-      in
-      let style = Style.Solid (Draw.black |> Draw.opaque) |> Style.of_bg in
-      let container =
-        Widget.box ~w:(int_of_float width) ~h:(int_of_float height) ~style ()
-      in
-      Layout.flat_of_w [ container ]
+      layout
 
 let build html_string css_string =
   let dom_nodes = html_string |> Dom.Tokenizer.tokenize |> Dom.Parser.parse in
