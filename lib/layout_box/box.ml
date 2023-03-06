@@ -206,3 +206,5 @@ let%expect_test "height_calculated_box" =
         margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
       }
   |}]
+
+let position_calculated_box box = box

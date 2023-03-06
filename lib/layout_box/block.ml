@@ -57,7 +57,9 @@ let height_calculated_block block =
   let box = Box.height_calculated_box ~height block.box in
   { block with box }
 
-let position_calculated_block block = block
+let position_calculated_block block =
+  let box = Box.position_calculated_box block.box in
+  { block with box }
 
 (* Build layout tree from style tree. *)
 let rec build ?(parent_width = 0.) ?(parent_height = 0.) style =
@@ -78,8 +80,10 @@ let rec build ?(parent_width = 0.) ?(parent_height = 0.) style =
           | _ -> Inline
         with Not_found -> Inline
       in
-      let block = width_calculated_block block in
-      let block = height_calculated_block block in
+      let block =
+        block |> width_calculated_block |> height_calculated_block
+        |> position_calculated_block
+      in
       {
         block with
         box_type;
