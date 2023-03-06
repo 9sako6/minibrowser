@@ -4,6 +4,8 @@
 opam install --deps-only --with-test .
 
 dune runtest
+
+dune exec minibrowser
 ```
 
 ## References
