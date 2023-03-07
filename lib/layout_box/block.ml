@@ -91,23 +91,34 @@ let rec build ?(parent_box = Box.empty ~width:0. ~height:0. ()) style =
           | _ -> Inline
         with Not_found -> Inline
       in
-      let block =
-        block |> width_calculated_block |> position_calculated_block
-        |> height_calculated_block
+      let block = width_calculated_block block in
+      let block = position_calculated_block block in
+      let children = List.map (build ~parent_box:block.box) children in
+      let rec height_aux blocks acc =
+        match blocks with
+        | [] -> acc
+        | head :: rest ->
+            let height = (Box.margin_box head.box).rect.height in
+            height_aux rest (acc +. height)
       in
-      {
-        block with
-        box_type;
-        children = List.map (build ~parent_box:block.box) children;
-      }
+      let children_height = height_aux children 0. in
+      let box =
+        {
+          block.box with
+          rect = { block.box.rect with height = children_height };
+        }
+      in
+      let block = { block with box } in
+      let block = height_calculated_block block in
+      { block with box_type; children }
 
 let%expect_test "build" =
   let dom_nodes =
-    "<div class=\"container\"><p>alice</p><p>bob</p></div>"
-    |> Dom.Tokenizer.tokenize |> Dom.Parser.parse
+    "<div class=\"container\"><p class=\"name\">alice</p><p \
+     class=\"name\">bob</p></div>" |> Dom.Tokenizer.tokenize |> Dom.Parser.parse
   in
   let css =
-    ".container {display: block; width: 200px; height: 100px;}"
+    ".container {display: block; width: 200px;} .name {height: 30px;}"
     |> Css.Tokenizer.tokenize |> Css.Parser.parse
   in
   let style_nodes =
@@ -121,21 +132,21 @@ let%expect_test "build" =
     {|
       Element("div") = Block
       {
-        rect = {x = 0.00; y = 0.00; width = 200.00; height = 100.00;}
+        rect = {x = 0.00; y = 0.00; width = 200.00; height = 60.00;}
         padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
         border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
         margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
       }
         Element("p") = Inline
         {
-          rect = {x = 0.00; y = 100.00; width = 200.00; height = 100.00;}
+          rect = {x = 0.00; y = 0.00; width = 200.00; height = 30.00;}
           padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
           border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
           margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
         }
           InnerText("alice") = Inline
           {
-            rect = {x = 0.00; y = 100.00; width = 200.00; height = 100.00;}
+            rect = {x = 0.00; y = 0.00; width = 200.00; height = 0.00;}
             padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
             border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
             margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
@@ -143,14 +154,14 @@ let%expect_test "build" =
 
         Element("p") = Inline
         {
-          rect = {x = 0.00; y = 100.00; width = 200.00; height = 100.00;}
+          rect = {x = 0.00; y = 0.00; width = 200.00; height = 30.00;}
           padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
           border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
           margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
         }
           InnerText("bob") = Inline
           {
-            rect = {x = 0.00; y = 100.00; width = 200.00; height = 100.00;}
+            rect = {x = 0.00; y = 0.00; width = 200.00; height = 0.00;}
             padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
             border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
             margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}

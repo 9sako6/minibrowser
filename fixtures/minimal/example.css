@@ -1,4 +1,7 @@
+* {
+  height: 100px;
+}
+
 .container {
   width: 200px;
-  height: 100px;
 }
