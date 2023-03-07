@@ -10,8 +10,8 @@ let width_calculated_block block =
   in
   let padding_left = lookup [ "padding-left"; "padding" ] in
   let padding_right = lookup [ "padding-right"; "padding" ] in
-  let border_left = lookup [ "border-left-width"; "border" ] in
-  let border_right = lookup [ "border-right-width"; "border" ] in
+  let border_left = lookup [ "border-left-width"; "border-width" ] in
+  let border_right = lookup [ "border-right-width"; "border-width" ] in
   let margin_left = lookup [ "margin-left"; "margin" ] in
   let margin_right = lookup [ "margin-right"; "margin" ] in
   let box =
@@ -30,7 +30,44 @@ let height_calculated_block block =
   { block with box }
 
 let position_calculated_block block =
-  let box = Box.position_calculated_box block.box in
+  (* let box = Box.position_calculated_box block.box in *)
+  let style_map = !(block.style_ref).specified_values in
+  let zero = Css.Value.(Size (0., Px)) in
+  let lookup keys = Css.Value_map.lookup keys zero style_map in
+  let padding_top = lookup [ "padding-top"; "padding" ] in
+  let padding_bottom = lookup [ "padding-bottom"; "padding" ] in
+  let padding =
+    {
+      block.box.padding with
+      top = Css.Value.get_size_value padding_top;
+      bottom = Css.Value.get_size_value padding_bottom;
+    }
+  in
+  let border_top = lookup [ "border-top-width"; "border-width" ] in
+  let border_bottom = lookup [ "border-bottom-width"; "border-width" ] in
+  let border =
+    {
+      block.box.border with
+      top = Css.Value.get_size_value border_top;
+      bottom = Css.Value.get_size_value border_bottom;
+    }
+  in
+  let margin_top = lookup [ "margin-top"; "margin" ] in
+  let margin_bottom = lookup [ "margin-bottom"; "margin" ] in
+  let margin =
+    {
+      block.box.margin with
+      top = Css.Value.get_size_value margin_top;
+      bottom = Css.Value.get_size_value margin_bottom;
+    }
+  in
+  let x = block.box.rect.x +. padding.left +. border.left +. margin.left in
+  let y =
+    block.box.rect.height +. block.box.rect.y +. padding.top +. border.top
+    +. margin.top
+  in
+  let rect = { block.box.rect with x; y } in
+  let box = Box.{ rect; padding; border; margin } in
   { block with box }
 
 (* Build layout tree from style tree. *)
@@ -55,8 +92,8 @@ let rec build ?(parent_box = Box.empty ~width:0. ~height:0. ()) style =
         with Not_found -> Inline
       in
       let block =
-        block |> width_calculated_block |> height_calculated_block
-        |> position_calculated_block
+        block |> width_calculated_block |> position_calculated_block
+        |> height_calculated_block
       in
       {
         block with
@@ -91,14 +128,14 @@ let%expect_test "build" =
       }
         Element("p") = Inline
         {
-          rect = {x = 0.00; y = 0.00; width = 200.00; height = 100.00;}
+          rect = {x = 0.00; y = 100.00; width = 200.00; height = 100.00;}
           padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
           border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
           margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
         }
           InnerText("alice") = Inline
           {
-            rect = {x = 0.00; y = 0.00; width = 200.00; height = 100.00;}
+            rect = {x = 0.00; y = 100.00; width = 200.00; height = 100.00;}
             padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
             border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
             margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
@@ -106,14 +143,14 @@ let%expect_test "build" =
 
         Element("p") = Inline
         {
-          rect = {x = 0.00; y = 0.00; width = 200.00; height = 100.00;}
+          rect = {x = 0.00; y = 100.00; width = 200.00; height = 100.00;}
           padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
           border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
           margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
         }
           InnerText("bob") = Inline
           {
-            rect = {x = 0.00; y = 0.00; width = 200.00; height = 100.00;}
+            rect = {x = 0.00; y = 100.00; width = 200.00; height = 100.00;}
             padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
             border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
             margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
