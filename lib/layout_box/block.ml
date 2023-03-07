@@ -3,45 +3,17 @@ open Node
 let width_calculated_block block =
   let style_map = !(block.style_ref).specified_values in
   let auto = Css.Value.Keyword "auto" in
+  let zero = Css.Value.(Size (0., Px)) in
+  let lookup keys = Css.Value_map.lookup keys zero style_map in
   let width =
     try Css.Value_map.find "width" style_map with Not_found -> auto
   in
-  let padding_left =
-    Css.Value_map.lookup
-      [ "padding-left"; "padding" ]
-      Css.Value.(Size (0., Px))
-      style_map
-  in
-  let padding_right =
-    Css.Value_map.lookup
-      [ "padding-right"; "padding" ]
-      Css.Value.(Size (0., Px))
-      style_map
-  in
-  let border_left =
-    Css.Value_map.lookup
-      [ "border-left-width"; "border" ]
-      Css.Value.(Size (0., Px))
-      style_map
-  in
-  let border_right =
-    Css.Value_map.lookup
-      [ "border-right-width"; "border" ]
-      Css.Value.(Size (0., Px))
-      style_map
-  in
-  let margin_left =
-    Css.Value_map.lookup
-      [ "margin-left"; "margin" ]
-      Css.Value.(Size (0., Px))
-      style_map
-  in
-  let margin_right =
-    Css.Value_map.lookup
-      [ "margin-right"; "margin" ]
-      Css.Value.(Size (0., Px))
-      style_map
-  in
+  let padding_left = lookup [ "padding-left"; "padding" ] in
+  let padding_right = lookup [ "padding-right"; "padding" ] in
+  let border_left = lookup [ "border-left-width"; "border" ] in
+  let border_right = lookup [ "border-right-width"; "border" ] in
+  let margin_left = lookup [ "margin-left"; "margin" ] in
+  let margin_right = lookup [ "margin-right"; "margin" ] in
   let box =
     Box.width_calculated_box ~width ~padding_left ~padding_right ~border_left
       ~border_right ~margin_left ~margin_right block.box
@@ -62,12 +34,14 @@ let position_calculated_block block =
   { block with box }
 
 (* Build layout tree from style tree. *)
-let rec build ?(parent_width = 0.) ?(parent_height = 0.) style =
+let rec build ?(parent_box = Box.empty ~width:0. ~height:0. ()) style =
   match style with
   | Style_tree.Node.{ node = _; specified_values; children } as style_node ->
       let block =
         {
-          box = Box.empty ~width:parent_width ~height:parent_height ();
+          box =
+            Box.empty ~width:parent_box.rect.width
+              ~height:parent_box.rect.height ();
           box_type = Anonymous;
           style_ref = ref style_node;
           children = [];
@@ -87,14 +61,9 @@ let rec build ?(parent_width = 0.) ?(parent_height = 0.) style =
       {
         block with
         box_type;
-        children =
-          List.map
-            (build ~parent_width:block.box.rect.width
-               ~parent_height:block.box.rect.height)
-            children;
+        children = List.map (build ~parent_box:block.box) children;
       }
 
-(* TODO: Fix test *)
 let%expect_test "build" =
   let dom_nodes =
     "<div class=\"container\"><p>alice</p><p>bob</p></div>"
@@ -107,7 +76,9 @@ let%expect_test "build" =
   let style_nodes =
     dom_nodes |> List.map ref |> List.map (Style_tree.Node.build css)
   in
-  let layout_nodes = style_nodes |> List.map build in
+  let layout_nodes =
+    style_nodes |> List.map (build ~parent_box:(Box.empty ~width:200. ()))
+  in
   layout_nodes |> List.map to_string |> List.iter print_endline;
   [%expect
     {|

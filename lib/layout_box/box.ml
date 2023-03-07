@@ -114,7 +114,7 @@ let width_calculated_box ~width ~padding_left ~padding_right ~border_left
         (margin_left, margin_right)
     | _ -> (margin_left, margin_right)
   in
-  let underflow = (get_size_value width) -. total in
+  let underflow = box.rect.width -. total in
   let width, margin_left, margin_right =
     match (width = auto, margin_left = auto, margin_right = auto) with
     (* If the values are overconstrained, calculate margin_right. *)
@@ -175,7 +175,7 @@ let%expect_test "width_calculated_box" =
     ~border_right:(Size (0., Px))
     ~margin_left:(Size (0., Px))
     ~margin_right:(Size (0., Px))
-    (empty ())
+    (empty ~width:100. ())
   |> string_of_box |> print_endline;
 
   [%expect
