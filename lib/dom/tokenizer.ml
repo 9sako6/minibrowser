@@ -75,6 +75,10 @@ let%expect_test "tokenize a tag" =
   "<div>hello</div>" |> tokenize |> print_tokens;
   [%expect {| <,div,>,hello,<,/,div,> |}]
 
+let%expect_test "tokenize a tag with an attribute that has no value" =
+  "<button disabled></button>" |> tokenize |> print_tokens;
+  [%expect {| <,button,disabled,>,<,/,button,> |}]
+
 let%expect_test "tokenize a tag with number text" =
   "<div>bob2</div>" |> tokenize |> print_tokens;
   [%expect {| <,div,>,bob2,<,/,div,> |}]
