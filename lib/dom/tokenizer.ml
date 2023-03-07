@@ -1,4 +1,4 @@
-exception Unknown_character of string
+exception Not_matched of string
 
 let print_tokens ?(separator = ",") tokens =
   print_endline (String.concat separator tokens)
@@ -7,18 +7,39 @@ let%expect_test "print_tokens with '|' separator" =
   print_tokens [ "<"; "div"; ">"; "a"; "<"; "/"; "div"; ">" ] ~separator:"|";
   [%expect {| <|div|>|a|<|/|div|> |}]
 
+let matched_string regexp string =
+  if Str.string_match regexp string 0 then Str.matched_string string
+  else Not_matched string |> raise
+
+let tokenize_text chars =
+  let text_regexp = Str.regexp "[^<]+" in
+  let input_string = Base.String.of_char_list chars in
+  let chunk = matched_string text_regexp input_string in
+  let rest =
+    Base.String.drop_prefix input_string (String.length chunk)
+    |> Base.String.to_list
+  in
+  (chunk, rest)
+
+let%expect_test "tokenize_text" =
+  let text, rest =
+    "Hello, World!</div>" |> Base.String.to_list |> tokenize_text
+  in
+  print_endline text;
+  List.iter print_char rest;
+  [%expect {|
+    Hello, World!
+    </div>
+  |}]
+
 let tokenize_chunk chars =
   let chunk_regexp = Str.regexp "[A-Za-z0-9-]+" in
-  let input_string =
-    chars |> List.map Base.String.of_char |> String.concat ""
+  let input_string = Base.String.of_char_list chars in
+  let chunk = matched_string chunk_regexp input_string in
+  let rest =
+    Base.String.drop_prefix input_string (String.length chunk)
+    |> Base.String.to_list
   in
-  let chunk =
-    if Str.string_match chunk_regexp input_string 0 then
-      Str.matched_string input_string
-    else Unknown_character (Base.String.of_char input_string.[0]) |> raise
-  in
-  let pos = String.length chunk in
-  let _, rest = Base.List.split_n chars pos in
   (chunk, rest)
 
 let%expect_test "tokenize_chunk" =
@@ -33,15 +54,20 @@ let%expect_test "tokenize_chunk" =
   |}]
 
 let tokenize input_string =
-  let rec aux tokens chars =
+  let rec aux ?(is_in_tag = false) tokens chars =
     match chars with
     | [] -> (tokens, [])
     | ' ' :: rest | '\n' :: rest -> aux tokens rest
-    | '<' :: rest | '>' :: rest | '/' :: rest | '=' :: rest | '"' :: rest ->
+    | '<' :: rest | '/' :: rest | '=' :: rest | '"' :: rest ->
         let token = List.hd chars |> Base.String.of_char in
-        aux (tokens @ [ token ]) rest
+        aux (tokens @ [ token ]) rest ~is_in_tag:false
+    | '>' :: rest ->
+        let token = '>' |> Base.String.of_char in
+        aux (tokens @ [ token ]) rest ~is_in_tag:true
     | _ ->
-        let chunk, rest = tokenize_chunk chars in
+        let chunk, rest =
+          if is_in_tag then tokenize_text chars else tokenize_chunk chars
+        in
         aux (tokens @ [ chunk ]) rest
   in
   let tokens, _ = aux [] (Base.String.to_list input_string) in
@@ -54,6 +80,14 @@ let%expect_test "tokenize a tag" =
 let%expect_test "tokenize a tag with number text" =
   "<div>bob2</div>" |> tokenize |> print_tokens;
   [%expect {| <,div,>,bob2,<,/,div,> |}]
+
+let%expect_test "tokenize a tag with a white space" =
+  "<div>Hello Hello</div>" |> tokenize |> print_tokens;
+  [%expect {| <,div,>,Hello Hello,<,/,div,> |}]
+
+let%expect_test "tokenize a tag with a white space and signs" =
+  "<div>Hello, World!</div>" |> tokenize |> print_tokens;
+  [%expect {| <,div,>,Hello, World!,<,/,div,> |}]
 
 let%expect_test "tokenize a tag containing a hyphen in the name" =
   "<my-element></my-element>" |> tokenize |> print_tokens;
