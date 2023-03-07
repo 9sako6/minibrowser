@@ -78,8 +78,12 @@ let empty ?(width = 0.) ?(height = 0.) () =
   { rect; padding; border; margin }
 
 (*
-  Calculate the width of a block-level non-replaced element in normal flow.
-  Sets the horizontal margin, padding, border, and the `width`.
+  > 10.3.3 Block-level, non-replaced elements in normal flow
+  > The following constraints must hold among the used values of the other properties:
+  > 
+  > 'margin-left' + 'border-left-width' + 'padding-left' + 'width' + 'padding-right' + 'border-right-width' + 'margin-right' = width of containing block.
+
+  https://www.w3.org/TR/CSS2/visudet.html#blockwidth
 *)
 let width_calculated_box ~width ~padding_left ~padding_right ~border_left
     ~border_right ~margin_left ~margin_right box =

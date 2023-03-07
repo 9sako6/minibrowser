@@ -5,8 +5,8 @@ let background_color ~r ~g ~b = Layout.opaque_bg (r, g, b)
 let rec build_from_layout_box layout_box =
   match layout_box with
   | Layout_box.Node.{ box; box_type; style_ref; children } ->
-      let x = box.rect.x |> int_of_float in
-      let y = box.rect.y |> int_of_float in
+      (* let x = box.rect.x |> int_of_float in *)
+      (* let y = box.rect.y |> int_of_float in *)
       let width = box.rect.width |> int_of_float in
       let height = box.rect.height |> int_of_float in
       let children_layout_boxes = List.map build_from_layout_box children in
@@ -27,9 +27,9 @@ let rec build_from_layout_box layout_box =
               | Anonymous ->
                   Layout.tower ~scale_content:false children_layout_boxes
             in
-            Layout.set_size ~keep_resize:false children (width, height);
-            Layout.setx ~keep_resize:false children x;
-            Layout.sety ~keep_resize:false children y;
+            (* Layout.set_size ~keep_resize:false children (width, height); *)
+            (* Layout.setx ~keep_resize:false children x;
+            Layout.sety ~keep_resize:false children y; *)
             children
         | InnerText text -> (
             let text_label =
@@ -55,7 +55,7 @@ let build html_string css_string =
     dom_nodes |> List.map ref |> List.map (Style_tree.Node.build css)
   in
   let layout_nodes = style_nodes |> List.map Layout_box.Block.build in
-  (* layout_nodes |> List.map Layout_box.Node.to_string |> List.iter print_endline; *)
+  layout_nodes |> List.map Layout_box.Node.to_string |> List.iter print_endline;
   let layouts = List.map build_from_layout_box layout_nodes in
   Bogue.of_layout (Layout.flat layouts)
 

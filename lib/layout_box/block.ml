@@ -182,3 +182,36 @@ let%expect_test "build" =
             margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
           }
   |}]
+
+let%expect_test "build" =
+  let dom_nodes =
+    "<div><div></div></div>" |> Dom.Tokenizer.tokenize |> Dom.Parser.parse
+  in
+  let css =
+    "* {  display: block; padding: 12px;}" |> Css.Tokenizer.tokenize
+    |> Css.Parser.parse
+  in
+  let style_nodes =
+    dom_nodes |> List.map ref |> List.map (Style_tree.Node.build css)
+  in
+  let layout_nodes =
+    style_nodes |> List.map (build ~parent_box:(Box.empty ()))
+  in
+  layout_nodes |> List.map to_string |> List.iter print_endline;
+  [%expect
+    {|
+      Element("div") = Block
+      {
+        rect = {x = 0.00; y = 0.00; width = 24.00; height = 24.00;}
+        padding = {top = 12.00; right = 12.00; bottom = 12.00; left = 12.00;}
+        border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
+        margin = {top = 0.00; right = -24.00; bottom = 0.00; left = 0.00;}
+      }
+        Element("div") = Block
+        {
+          rect = {x = 12.00; y = 12.00; width = 0.00; height = 0.00;}
+          padding = {top = 12.00; right = 12.00; bottom = 12.00; left = 12.00;}
+          border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
+          margin = {top = 0.00; right = -24.00; bottom = 0.00; left = 0.00;}
+        }
+  |}]
