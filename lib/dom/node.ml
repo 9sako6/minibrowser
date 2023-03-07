@@ -25,41 +25,50 @@ type t =
   | Element of string * Attribute.t list * t list
   | InnerText of string
 
-let to_string node =
-  let attributes_to_string attributes =
-    attributes |> List.map Attribute.to_string |> String.concat " "
-  in
-  let rec nodes_to_string prefix nodes =
-    match nodes with
-    | [] -> ""
-    | head :: rest ->
-        Printf.sprintf "%s%s"
-          (node_to_string prefix head)
-          (nodes_to_string prefix rest)
-  and node_to_string prefix = function
-    | Element (name, attributes, children) ->
-        let attrs = attributes_to_string attributes in
-        Printf.sprintf "%s↳%s %s\n%s" prefix name attrs
-          (nodes_to_string (prefix ^ "  ") children)
-    | InnerText text -> Printf.sprintf "%s↳#text: %s\n" prefix text
-  in
-  node_to_string "" node
-
-let%expect_test "to_string div tag with child" =
-  Element
-    ("div", [], [ InnerText "alice"; Element ("p", [], [ InnerText "child" ]) ])
-  |> to_string |> print_endline;
-  [%expect {|
-  ↳div
-    ↳#text: alice
-    ↳p
-      ↳#text: child
-  |}]
-
-let string_of_node = function
-  | Element (name, attributes, _) ->
-      let attributes_str =
+let rec string_of_node ?(with_children = true) ?(indent = "") = function
+  | Element (name, attributes, children) ->
+      let attributes_string =
         attributes |> List.map Attribute.to_string |> String.concat "; "
       in
-      Printf.sprintf "Element(%s; [%s])" name attributes_str
-  | InnerText text -> Printf.sprintf "InnerText(\"%s\")" text
+      let children_string =
+        if with_children then
+          "\n"
+          ^ (List.map
+               (string_of_node ~with_children ~indent:(indent ^ "  "))
+               children
+            |> String.concat "\n")
+        else ""
+      in
+      Printf.sprintf "%sElement(%s; [%s])%s" indent name attributes_string
+        children_string
+  | InnerText text -> Printf.sprintf "%sInnerText(\"%s\")" indent text
+
+let%expect_test "string_of_node" =
+  Element
+    ("div", [ Attribute.build "class" "alert" ], [ Element ("div", [], []) ])
+  |> string_of_node |> print_endline;
+  [%expect {|
+    Element(div; [class="alert"])
+      Element(div; [])
+  |}]
+
+let%expect_test "string_of_node without children" =
+  Element
+    ("div", [ Attribute.build "class" "alert" ], [ Element ("div", [], []) ])
+  |> string_of_node ~with_children:false
+  |> print_endline;
+  [%expect {|
+    Element(div; [class="alert"])
+  |}]
+
+let%expect_test "string_of_node a div tag that has a child" =
+  Element
+    ("div", [], [ InnerText "alice"; Element ("p", [], [ InnerText "child" ]) ])
+  |> string_of_node |> print_endline;
+  [%expect
+    {|
+      Element(div; [])
+        InnerText("alice")
+        Element(p; [])
+          InnerText("child")
+  |}]

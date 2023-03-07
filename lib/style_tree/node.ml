@@ -6,7 +6,7 @@ type t = {
 
 let rec to_string ?(indent = "") = function
   | { node = dom_node; specified_values = map; children } ->
-      let dom_string = Dom.Node.string_of_node !dom_node in
+      let dom_string = Dom.Node.string_of_node ~with_children:false !dom_node in
       let map_string = Css.Value_map.to_string map in
       let children_string =
         children

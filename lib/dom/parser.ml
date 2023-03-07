@@ -121,29 +121,29 @@ let%test "parse text" = tokenize "hello" |> parse = [ InnerText "hello" ]
 
 let%expect_test "parse div tag with attribute" =
   tokenize "<div class=\"red\">hi</div>"
-  |> parse |> List.hd |> to_string |> print_endline;
+  |> parse |> List.hd |> string_of_node |> print_endline;
   [%expect {|
-  ↳div class="red"
-    ↳#text: hi
+    Element(div; [class="red"])
+      InnerText("hi")
   |}]
 
 let%expect_test "parse div tag with newline" =
   tokenize "\n  <div class=\"red\">\n    hi\n  </div>"
-  |> parse |> List.hd |> to_string |> print_endline;
+  |> parse |> List.hd |> string_of_node |> print_endline;
   [%expect {|
-  ↳div class="red"
-    ↳#text: hi
+    Element(div; [class="red"])
+      InnerText("hi")
   |}]
 
 let%expect_test "parse div tag with attribute and children" =
   tokenize "<div class=\"red\">\n  hi<p>a</p><p>b</p></div>"
-  |> parse |> List.hd |> to_string |> print_endline;
+  |> parse |> List.hd |> string_of_node |> print_endline;
   [%expect
     {|
-  ↳div class="red"
-    ↳#text: hi
-    ↳p
-      ↳#text: a
-    ↳p
-      ↳#text: b
+      Element(div; [class="red"])
+        InnerText("hi")
+        Element(p; [])
+          InnerText("a")
+        Element(p; [])
+          InnerText("b")
   |}]
