@@ -206,3 +206,36 @@ let%expect_test "height_calculated_box" =
         margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
       }
   |}]
+
+let expanded_by edge rect =
+  {
+    x = rect.x -. edge.left;
+    y = rect.y -. edge.top;
+    width = rect.width +. edge.left +. edge.right;
+    height = rect.height +. edge.top +. edge.bottom;
+  }
+
+let padding_box box = { box with rect = expanded_by box.padding box.rect }
+
+let border_box box =
+  { box with rect = expanded_by box.border (padding_box box).rect }
+
+let margin_box box =
+  { box with rect = expanded_by box.margin (border_box box).rect }
+
+let%expect_test "margin_box" =
+  let rect = { x = 0.; y = 0.; width = 10.; height = 10. } in
+  let padding = { top = 2.; right = 2.; bottom = 2.; left = 2. } in
+  let border = { top = 5.; right = 5.; bottom = 5.; left = 5. } in
+  let margin = { top = 100.; right = 100.; bottom = 100.; left = 100. } in
+  { rect; padding; border; margin }
+  |> margin_box |> string_of_box |> print_endline;
+  [%expect
+    {| 
+      {
+        rect = {x = -107.00; y = -107.00; width = 224.00; height = 224.00;}
+        padding = {top = 2.00; right = 2.00; bottom = 2.00; left = 2.00;}
+        border = {top = 5.00; right = 5.00; bottom = 5.00; left = 5.00;}
+        margin = {top = 100.00; right = 100.00; bottom = 100.00; left = 100.00;}
+      }
+  |}]
