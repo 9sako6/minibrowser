@@ -33,7 +33,7 @@ let%expect_test "tokenize_text" =
   |}]
 
 let tokenize_chunk chars =
-  let chunk_regexp = Str.regexp "[A-Za-z0-9-]+" in
+  let chunk_regexp = Str.regexp "[A-Za-z0-9-.]+" in
   let input_string = Base.String.of_char_list chars in
   let chunk = matched_string chunk_regexp input_string in
   let rest =
@@ -102,3 +102,7 @@ let%expect_test "tokenize a tag that has a class attribute" =
 let%expect_test "tokenize a tag that has children" =
   "<ul>\n<li>alice</li>\n<li>bob</li></ul>" |> tokenize |> print_tokens;
   [%expect {| <,ul,>,<,li,>,alice,<,/,li,>,<,li,>,bob,<,/,li,>,<,/,ul,> |}]
+
+let%expect_test "tokenize a link tag that has a css path as a href attribute" =
+  "<link href=\"global.css\"></link>" |> tokenize |> print_tokens;
+  [%expect {| <,link,href,=,",global.css,",>,<,/,link,> |}]
