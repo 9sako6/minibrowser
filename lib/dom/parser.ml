@@ -14,26 +14,26 @@ let%expect_test "omit_end_tag_tokens" =
 
 let parse_children_tokens tokens =
   (* When the score is positive, some tag is open. *)
-  let rec split score children tails =
+  let rec aux score children tails =
     match tails with
     | [] -> raise NoEndTag
     (* Each time a tag is closed, the score is decremented. *)
-    | "<" :: "/" :: rest -> split (score - 1) (children @ [ "<"; "/" ]) rest
+    | "<" :: "/" :: rest -> aux (score - 1) (children @ [ "<"; "/" ]) rest
     (* Each time a tag is opened, the score is incremented. *)
-    | "<" :: rest -> split (score + 1) (children @ [ "<" ]) rest
+    | "<" :: rest -> aux (score + 1) (children @ [ "<" ]) rest
     | head :: rest -> (
         match (head, score) with
         | ">", 0 ->
             (* Omit parent's end tag. *)
             let children_tokens = children @ [ ">" ] |> omit_end_tag_tokens in
             (children_tokens, rest)
-        | _, 0 -> split 0 (children @ [ head ]) rest
+        | _, 0 -> aux 0 (children @ [ head ]) rest
         | _ ->
-            if score > 0 then split score (children @ [ head ]) rest
+            if score > 0 then aux score (children @ [ head ]) rest
             else raise NoEndTag)
   in
 
-  let children_tokens, rest = split 1 [] tokens in
+  let children_tokens, rest = aux 1 [] tokens in
   (children_tokens, rest)
 
 let%expect_test "parse_children_tokens" =
@@ -117,7 +117,9 @@ let%test "parse with child and other" =
       Element ("div", [], [ InnerText "bob" ]);
     ]
 
-let%test "parse text" = tokenize "hello" |> parse = [ InnerText "hello" ]
+let%expect_test "parse text" =
+  tokenize "hello" |> parse |> List.hd |> string_of_node |> print_endline;
+  [%expect {| InnerText("hello") |}]
 
 let%expect_test "parse div tag with attribute" =
   tokenize "<div class=\"red\">hi</div>"
