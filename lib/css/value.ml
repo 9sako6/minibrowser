@@ -46,27 +46,13 @@ let%expect_test "( + )" =
   Size (10., Px) + Keyword "auto" |> to_string |> print_endline;
   [%expect {| 10. px |}]
 
-let rgb_of_hex hex_string =
-  let r =
-    Printf.sprintf "0x%c%c" hex_string.[0] hex_string.[1] |> int_of_string
-  in
-  let g =
-    Printf.sprintf "0x%c%c" hex_string.[2] hex_string.[3] |> int_of_string
-  in
-  let b =
-    Printf.sprintf "0x%c%c" hex_string.[4] hex_string.[5] |> int_of_string
-  in
-  Rgb (r, g, b)
-
-let%expect_test "rgb_of_hex" =
-  "bb2254" |> rgb_of_hex |> to_string |> print_endline;
-  [%expect {| rgb(187, 34, 84) |}]
-
 let build tokens =
   let px_regexp = Str.regexp "[0-9]+px" in
   let number_regexp = Str.regexp "[0-9]+" in
   match tokens with
-  | "#" :: [ hex_string ] -> rgb_of_hex hex_string
+  | "#" :: [ hex_string ] ->
+      let r, g, b = Color.rgb_of_hex hex_string in
+      Rgb (r, g, b)
   | head :: _ -> (
       match
         ( Str.string_match px_regexp head 0,
