@@ -6,12 +6,22 @@ type size_unit = Px
 type t =
   | Keyword of string
   | Size of float * size_unit
+  | Rgb of char * char * char
 
 let to_string = function
   | Keyword keyword -> keyword
   | Size (size, unit) -> (
       match unit with
       | Px -> Printf.sprintf "%s px" (string_of_float size))
+  | Rgb (r, g, b) ->
+      let r = Base.Char.to_int r in
+      let g = Base.Char.to_int g in
+      let b = Base.Char.to_int b in
+      Printf.sprintf "rgb(%d, %d, %d)" r g b
+
+let%expect_test "to_string" =
+  Rgb ('\100', '\000', '\001') |> to_string |> print_endline;
+  [%expect {| rgb(100, 0, 1) |}]
 
 let get_size_value value =
   match value with
