@@ -26,7 +26,12 @@ let height_calculated_block block =
     try Css.Value_map.find "height" style_map
     with Not_found -> Css.Value.Size (block.box.rect.height, Px)
   in
-  let box = Box.height_calculated_box ~height block.box in
+  let box =
+    {
+      block.box with
+      rect = { block.box.rect with height = Css.Value.get_size_value height };
+    }
+  in
   { block with box }
 
 let position_calculated_block block =

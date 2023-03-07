@@ -188,25 +188,6 @@ let%expect_test "width_calculated_box" =
       }
   |}]
 
-let height_calculated_box ~height box =
-  let open Css.Value in
-  let rect = { box.rect with height = get_size_value height } in
-  { box with rect }
-
-let%expect_test "height_calculated_box" =
-  height_calculated_box ~height:(Size (100., Px)) (empty ())
-  |> string_of_box |> print_endline;
-
-  [%expect
-    {|
-      {
-        rect = {x = 0.00; y = 0.00; width = 0.00; height = 100.00;}
-        padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
-        border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
-        margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
-      }
-  |}]
-
 let expanded_by edge rect =
   {
     x = rect.x -. edge.left;
