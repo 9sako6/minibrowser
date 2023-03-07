@@ -1,5 +1,7 @@
 open Bogue
 
+let background_color ~r = Layout.opaque_bg (r, 100, 100)
+
 let rec build_from_layout_box layout_box =
   match layout_box with
   | Layout_box.Node.{ box; box_type; style_ref; children } ->
@@ -10,18 +12,30 @@ let rec build_from_layout_box layout_box =
         match !(!style_ref.node) with
         | Element (_, _, _) -> (
             match box_type with
-            | Block -> Layout.tower children_layout_boxes
-            | Inline -> Layout.flat children_layout_boxes
-            | Anonymous -> Layout.tower children_layout_boxes)
+            | Block ->
+                Layout.tower ~scale_content:false
+                  ~background:(background_color ~r:(Random.int 255))
+                  children_layout_boxes
+            | Inline ->
+                Layout.flat ~scale_content:false ~margins:0
+                  children_layout_boxes
+            | Anonymous ->
+                Layout.tower ~scale_content:false children_layout_boxes)
         | InnerText text -> (
-            let text_label = Widget.label text |> Layout.resident in
+            let text_label =
+              Widget.label text |> Layout.resident ~w:width ~h:height
+            in
             match box_type with
-            | Block -> Layout.tower ([ text_label ] @ children_layout_boxes)
-            | Inline -> Layout.flat ([ text_label ] @ children_layout_boxes)
-            | Anonymous -> Layout.tower ([ text_label ] @ children_layout_boxes)
-            )
+            | Block ->
+                Layout.tower ~scale_content:false
+                  ([ text_label ] @ children_layout_boxes)
+            | Inline ->
+                Layout.flat ~scale_content:false ~margins:0
+                  ([ text_label ] @ children_layout_boxes)
+            | Anonymous ->
+                Layout.tower ~scale_content:false
+                  ([ text_label ] @ children_layout_boxes))
       in
-      Layout.set_size layout (width, height);
       layout
 
 let build html_string css_string =
