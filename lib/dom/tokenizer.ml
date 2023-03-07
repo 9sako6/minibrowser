@@ -61,9 +61,7 @@ let tokenize input_string =
     | '<' :: rest | '/' :: rest | '=' :: rest | '"' :: rest ->
         let token = List.hd chars |> Base.String.of_char in
         aux (tokens @ [ token ]) rest ~is_in_tag:false
-    | '>' :: rest ->
-        let token = '>' |> Base.String.of_char in
-        aux (tokens @ [ token ]) rest ~is_in_tag:true
+    | '>' :: rest -> aux (tokens @ [ ">" ]) rest ~is_in_tag:true
     | _ ->
         let chunk, rest =
           if is_in_tag then tokenize_text chars else tokenize_chunk chars
