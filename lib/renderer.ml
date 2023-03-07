@@ -1,6 +1,6 @@
 open Bogue
 
-let background_color ~r = Layout.opaque_bg (r, 100, 100)
+let background_color ~r ~g ~b = Layout.opaque_bg (r, g, b)
 
 let rec build_from_layout_box layout_box =
   match layout_box with
@@ -8,13 +8,15 @@ let rec build_from_layout_box layout_box =
       let width = box.rect.width |> int_of_float in
       let height = box.rect.height |> int_of_float in
       let children_layout_boxes = List.map build_from_layout_box children in
+
+      let r, g, b = Layout_box.Block.get_background_color layout_box in
       let layout =
         match !(!style_ref.node) with
         | Element (_, _, _) -> (
             match box_type with
             | Block ->
                 Layout.tower ~scale_content:false
-                  ~background:(background_color ~r:(Random.int 255))
+                  ~background:(background_color ~r ~g ~b)
                   children_layout_boxes
             | Inline ->
                 Layout.flat ~scale_content:false ~margins:0

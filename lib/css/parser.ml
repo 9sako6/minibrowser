@@ -36,11 +36,11 @@ let%expect_test "parse_declaration" =
 let%expect_test "parse_declaration" =
   let declaration, rest =
     parse_declaration
-      [ "color"; ":"; "#"; "191919"; ";"; "}"; "."; "foo"; "{"; "}" ]
+      [ "background-color"; ":"; "#"; "191919"; ";"; "}"; "."; "foo"; "{"; "}" ]
   in
   print_endline (string_of_declaration declaration);
   assert (rest = [ "}"; "."; "foo"; "{"; "}" ]);
-  [%expect {| Declaration(color: #191919) |}]
+  [%expect {| Declaration(background-color: rgb(25, 25, 25)) |}]
 
 let parse_declarations tokens =
   let rec aux declarations rest =
@@ -63,7 +63,7 @@ let%expect_test "parse_declarations" =
   [%expect
     {|
     Declaration(display: none)
-    Declaration(color: #191919)
+    Declaration(color: rgb(25, 25, 25))
     Declaration(font-size: 14. px)
   |}]
 

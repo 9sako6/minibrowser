@@ -1,5 +1,15 @@
 open Node
 
+let get_background_color block =
+  let style_map = !(block.style_ref).specified_values in
+  let rgb =
+    try Css.Value_map.find "background-color" style_map
+    with Not_found -> Css.Value.Rgb (255, 255, 255)
+  in
+  match rgb with
+  | Rgb (r, g, b) -> (r, g, b)
+  | _ -> failwith "Fail to get background color."
+
 let width_calculated_block block =
   let style_map = !(block.style_ref).specified_values in
   let auto = Css.Value.Keyword "auto" in
