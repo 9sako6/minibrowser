@@ -57,10 +57,9 @@ let tokenize input_string =
   let rec aux ?(is_in_tag = false) tokens chars =
     match chars with
     | [] -> (tokens, [])
-    | ' ' :: rest | '\n' :: rest -> aux tokens rest
-    | '<' :: rest | '/' :: rest | '=' :: rest | '"' :: rest ->
-        let token = List.hd chars |> Base.String.of_char in
-        aux (tokens @ [ token ]) rest ~is_in_tag:false
+    | (' ' | '\n') :: rest -> aux tokens rest
+    | (('<' | '/' | '=' | '"') as head) :: rest ->
+        aux (tokens @ [ Base.String.of_char head ]) rest ~is_in_tag:false
     | '>' :: rest -> aux (tokens @ [ ">" ]) rest ~is_in_tag:true
     | _ ->
         let chunk, rest =

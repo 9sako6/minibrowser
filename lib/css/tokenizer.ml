@@ -24,15 +24,9 @@ let tokenize input_string =
   let rec aux tokens chars =
     match chars with
     | [] -> (tokens, [])
-    | ' ' :: rest | '\n' :: rest -> aux tokens rest
-    | '.' :: rest
-    | '{' :: rest
-    | '}' :: rest
-    | ';' :: rest
-    | ':' :: rest
-    | '#' :: rest
-    | '*' :: rest
-    | ',' :: rest -> aux (tokens @ [ Base.String.of_char (List.hd chars) ]) rest
+    | (' ' | '\n') :: rest -> aux tokens rest
+    | (('.' | '{' | '}' | ';' | ':' | '#' | '*' | ',') as head) :: rest ->
+        aux (tokens @ [ Base.String.of_char head ]) rest
     | _ ->
         let chunk, rest = tokenize_chunk chars in
         aux (tokens @ [ chunk ]) rest
