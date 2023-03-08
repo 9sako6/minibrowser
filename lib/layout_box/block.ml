@@ -88,8 +88,8 @@ let position_calculated_block block containing_block =
   let box = Box.{ rect; padding; border; margin } in
   { block with box }
 
-let empty =
-  let box = Box.empty ~width:0. ~height:0. () in
+let empty ?(width = 0.) ?(height = 0.) () =
+  let box = Box.empty ~width ~height () in
   {
     box;
     box_type = Anonymous;
@@ -98,7 +98,7 @@ let empty =
   }
 
 (* Build layout tree from style tree. *)
-let rec build ?(containing_block = empty) style =
+let rec build ?(containing_block = empty ()) style =
   match style with
   | Style_tree.Node.{ node = _; specified_values; children } as style_node ->
       let block =

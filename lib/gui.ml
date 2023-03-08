@@ -6,7 +6,8 @@ let build html_string css_string =
   let style_nodes =
     dom_nodes |> List.map ref |> List.map (Style_tree.Node.build css)
   in
-  style_nodes |> List.map Layout_box.Block.build
+  let root = Layout_box.Block.empty ~width:200. () in
+  style_nodes |> List.map (Layout_box.Block.build ~containing_block:root)
 
 let rec render cr commands =
   match commands with
@@ -36,18 +37,19 @@ let rec render cr commands =
 
 let expose _drawing_area html_string css_string cr =
   let nodes = build html_string css_string in
-  let node = nodes |> List.tl |> List.hd in
-  let commands = Display_command.build node in
-  let _ = render cr commands in
+  let _ = nodes |> List.map Display_command.build |> List.map (render cr) in
   true
 
 let main html_string css_string () =
   let _ = GMain.init () in
-  let w = GWindow.window ~title:"Drawing demo" ~width:500 ~height:400 () in
-  ignore (w#connect#destroy ~callback:GMain.quit);
+  let window =
+    GWindow.window ~title:"minibrowser" ~width:800 ~height:400 ~resizable:true
+      ()
+  in
+  ignore (window#connect#destroy ~callback:GMain.quit);
 
-  let d = GMisc.drawing_area ~packing:w#add () in
+  let d = GMisc.drawing_area ~packing:window#add () in
   ignore (d#misc#connect#draw ~callback:(expose d html_string css_string));
 
-  w#show ();
+  window#show ();
   GMain.main ()
