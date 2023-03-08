@@ -25,7 +25,9 @@ type t =
   | Element of string * Attribute.t list * t list
   | InnerText of string
 
-let rec string_of_node ?(with_children = true) ?(indent = "") = function
+let empty = InnerText ""
+
+  let rec string_of_node ?(with_children = true) ?(indent = "") = function
   | Element (name, attributes, children) ->
       let attributes_string =
         attributes |> List.map Attribute.to_string |> String.concat "; "

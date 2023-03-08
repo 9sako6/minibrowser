@@ -4,6 +4,13 @@ type t = {
   children : t list;
 }
 
+let empty =
+  {
+    specified_values = Css.Value_map.empty;
+    children = [];
+    node = ref Dom.Node.empty;
+  }
+
 let rec to_string ?(indent = "") = function
   | { node = dom_node; specified_values = map; children } ->
       let dom_string = Dom.Node.string_of_node ~with_children:false !dom_node in
