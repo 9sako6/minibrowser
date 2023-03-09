@@ -11,13 +11,14 @@ dune exec minibrowser
 ## Modules for rendering
 
 ```mermaid
-flowchart LR
+flowchart RL
     Style --> DOM
     Style --> CSS
     Layout --> Style
     Display_command --> Layout
     GUI --> Display_command
     GUI --> lablgtk3
+    .exe --> GUI
 ```
 
 ## References
