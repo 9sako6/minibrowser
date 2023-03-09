@@ -8,6 +8,18 @@ dune runtest
 dune exec minibrowser
 ```
 
+## Modules for rendering
+
+```mermaid
+flowchart LR
+    Style --> DOM
+    Style --> CSS
+    Layout --> Style
+    Display_command --> Layout
+    GUI --> Display_command
+    GUI --> lablgtk3
+```
+
 ## References
 
 1. [ちいさな Web ブラウザを作ってみよう](https://browserbook.shift-js.info/)
