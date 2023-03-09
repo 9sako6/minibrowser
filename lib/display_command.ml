@@ -34,10 +34,8 @@ let%expect_test "rect_of_box" =
         margin = { top = 0.00; right = -24.00; bottom = 0.00; left = 0.00 };
       }
   in
-  box |> Layout_box.Box.border_box |> Layout_box.Box.string_of_box
-  |> print_endline;
   box |> rect_of_box |> string_of_rect |> print_endline;
-  [%expect {||}]
+  [%expect {| {x=0; y=0; width=24; height=48;} |}]
 
 let rec build layout_box =
   let color = Layout_box.Block.get_background_color layout_box in
