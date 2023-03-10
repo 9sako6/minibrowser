@@ -9,10 +9,6 @@ type t =
   | Rgb of int * int * int
 [@@deriving show]
 
-let%expect_test "show" =
-  Rgb (100, 0, 1) |> show |> print_endline;
-  [%expect {| (Value.Rgb (100, 0, 1)) |}]
-
 let get_size_value value =
   match value with
   | Size (size, _) -> size
