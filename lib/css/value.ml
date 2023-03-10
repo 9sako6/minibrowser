@@ -1,29 +1,23 @@
 exception Invalid_size_value of string
 exception Invalid_value of string
 
-type size_unit = Px
+type size_unit = Px [@@deriving show]
 
 type t =
   | Keyword of string
   | Size of float * size_unit
   | Rgb of int * int * int
+[@@deriving show]
 
-let to_string = function
-  | Keyword keyword -> keyword
-  | Size (size, unit) -> (
-      match unit with
-      | Px -> Printf.sprintf "%s px" (string_of_float size))
-  | Rgb (r, g, b) -> Printf.sprintf "rgb(%d, %d, %d)" r g b
-
-let%expect_test "to_string" =
-  Rgb (100, 0, 1) |> to_string |> print_endline;
-  [%expect {| rgb(100, 0, 1) |}]
+let%expect_test "show" =
+  Rgb (100, 0, 1) |> show |> print_endline;
+  [%expect {| (Value.Rgb (100, 0, 1)) |}]
 
 let get_size_value value =
   match value with
   | Size (size, _) -> size
   | Keyword "auto" -> 0.
-  | _ -> Invalid_size_value (to_string value) |> raise
+  | _ -> Invalid_size_value (show value) |> raise
 
 let ( + ) left right =
   match (left, right) with
@@ -34,17 +28,17 @@ let ( + ) left right =
   | Keyword "auto", Keyword "auto" -> Size (0., Px)
   | _ ->
       let error_message =
-        Printf.sprintf "left: %s, right: %s" (to_string left) (to_string right)
+        Printf.sprintf "left: %s, right: %s" (show left) (show right)
       in
       raise (Invalid_size_value error_message)
 
 let%expect_test "( + )" =
-  Size (10., Px) + Size (2., Px) |> to_string |> print_endline;
-  [%expect {| 12. px |}]
+  Size (10., Px) + Size (2., Px) |> show |> print_endline;
+  [%expect {| (Value.Size (12., Value.Px)) |}]
 
 let%expect_test "( + )" =
-  Size (10., Px) + Keyword "auto" |> to_string |> print_endline;
-  [%expect {| 10. px |}]
+  Size (10., Px) + Keyword "auto" |> show |> print_endline;
+  [%expect {| (Value.Size (10., Value.Px)) |}]
 
 let build tokens =
   let px_regexp = Str.regexp "[0-9]+px" in
@@ -65,13 +59,13 @@ let build tokens =
   | [] -> Invalid_value (String.concat "" tokens) |> raise
 
 let%expect_test "build" =
-  [ "12px" ] |> build |> to_string |> print_endline;
-  [%expect {| 12. px |}]
+  [ "12px" ] |> build |> show |> print_endline;
+  [%expect {| (Value.Size (12., Value.Px)) |}]
 
 let%expect_test "build" =
-  [ "#"; "191919" ] |> build |> to_string |> print_endline;
-  [%expect {| rgb(25, 25, 25) |}]
+  [ "#"; "191919" ] |> build |> show |> print_endline;
+  [%expect {| (Value.Rgb (25, 25, 25)) |}]
 
 let%expect_test "build" =
-  [ "inline" ] |> build |> to_string |> print_endline;
-  [%expect {| inline |}]
+  [ "inline" ] |> build |> show |> print_endline;
+  [%expect {| (Value.Keyword "inline") |}]

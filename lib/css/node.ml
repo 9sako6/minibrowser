@@ -8,7 +8,7 @@ type stylesheet = Stylesheet of rule list
 
 let string_of_declaration = function
   | Declaration (name, value) ->
-      Printf.sprintf "Declaration(%s: %s)" name (Value.to_string value)
+      Printf.sprintf "Declaration(%s: %s)" name (Value.show value)
 
 let string_of_selector = function
   | Universal_selector -> Printf.sprintf "Universal_selector"

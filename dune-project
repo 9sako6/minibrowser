@@ -23,8 +23,8 @@
   ocaml
   dune
   base
-  bogue
   lablgtk3
+  ppx_deriving
   (alcotest :with-test)
   (ppx_expect :with-test)
   (ppx_inline_test :with-test))

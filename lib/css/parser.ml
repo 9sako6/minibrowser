@@ -23,7 +23,7 @@ let%expect_test "parse_declaration" =
   in
   print_endline (string_of_declaration declaration);
   assert (rest = [ "}"; "."; "foo"; "{"; "}" ]);
-  [%expect {| Declaration(display: inline) |}]
+  [%expect {| Declaration(display: (Value.Keyword "inline")) |}]
 
 let%expect_test "parse_declaration" =
   let declaration, rest =
@@ -31,7 +31,7 @@ let%expect_test "parse_declaration" =
   in
   print_endline (string_of_declaration declaration);
   assert (rest = [ "}"; "."; "foo"; "{"; "}" ]);
-  [%expect {| Declaration(margin: 10. px) |}]
+  [%expect {| Declaration(margin: (Value.Size (10., Value.Px))) |}]
 
 let%expect_test "parse_declaration" =
   let declaration, rest =
@@ -40,7 +40,7 @@ let%expect_test "parse_declaration" =
   in
   print_endline (string_of_declaration declaration);
   assert (rest = [ "}"; "."; "foo"; "{"; "}" ]);
-  [%expect {| Declaration(background-color: rgb(25, 25, 25)) |}]
+  [%expect {| Declaration(background-color: (Value.Rgb (25, 25, 25))) |}]
 
 let parse_declarations tokens =
   let rec aux declarations rest =
@@ -62,9 +62,9 @@ let%expect_test "parse_declarations" =
   declarations |> List.map string_of_declaration |> List.iter print_endline;
   [%expect
     {|
-    Declaration(display: none)
-    Declaration(color: rgb(25, 25, 25))
-    Declaration(font-size: 14. px)
+    Declaration(display: (Value.Keyword "none"))
+    Declaration(color: (Value.Rgb (25, 25, 25)))
+    Declaration(font-size: (Value.Size (14., Value.Px)))
   |}]
 
 let parse_selector tokens =
@@ -139,4 +139,4 @@ let%expect_test "parse" =
   ".foo,.bar {\n  display: flex;\n  color: red;\n}\n" |> Tokenizer.tokenize
   |> parse |> string_of_stylesheet |> print_endline;
   [%expect
-    {| Stylesheet([Rule([Class_selector(foo); Class_selector(bar)], [Declaration(display: flex); Declaration(color: red)])]) |}]
+    {| Stylesheet([Rule([Class_selector(foo); Class_selector(bar)], [Declaration(display: (Value.Keyword "flex")); Declaration(color: (Value.Keyword "red"))])]) |}]

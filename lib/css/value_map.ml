@@ -13,7 +13,7 @@ let to_string map =
     match bindings with
     | [] -> (acc, [])
     | (name, value) :: rest ->
-        let string = Printf.sprintf "%s: %s;" name (Value.to_string value) in
+        let string = Printf.sprintf "%s: %s;" name (Value.show value) in
         aux rest (acc @ [ string ])
   in
   let strings, _ = aux bindings [] in
@@ -29,11 +29,11 @@ let%expect_test "lookup" =
   let value = Value.Size (12., Px) in
   empty |> add "padding" value
   |> lookup [ "padding-left"; "padding" ] (Keyword "default")
-  |> Value.to_string |> print_endline;
-  [%expect {| 12. px |}]
+  |> Value.show |> print_endline;
+  [%expect {| (Value.Size (12., Value.Px)) |}]
 
 let%expect_test "lookup" =
   empty
   |> lookup [ "padding-left"; "padding" ] (Keyword "default")
-  |> Value.to_string |> print_endline;
-  [%expect {| default |}]
+  |> Value.show |> print_endline;
+  [%expect {| (Value.Keyword "default") |}]
