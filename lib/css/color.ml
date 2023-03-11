@@ -1,4 +1,4 @@
-type t = int * int * int [@@deriving show]
+type t = int * int * int [@@deriving show { with_path = false }]
 
 let rgb_of_hex hex_string =
   Scanf.sscanf hex_string "%2x%2x%2x" (fun r g b -> (r, g, b))

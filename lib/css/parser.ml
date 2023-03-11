@@ -21,26 +21,26 @@ let%expect_test "parse_declaration" =
     parse_declaration
       [ "display"; ":"; "inline"; ";"; "}"; "."; "foo"; "{"; "}" ]
   in
-  print_endline (string_of_declaration declaration);
+  print_endline (show_declaration declaration);
   assert (rest = [ "}"; "."; "foo"; "{"; "}" ]);
-  [%expect {| Declaration(display: (Keyword "inline")) |}]
+  [%expect {| (Declaration ("display", (Keyword "inline"))) |}]
 
 let%expect_test "parse_declaration" =
   let declaration, rest =
     parse_declaration [ "margin"; ":"; "10px"; ";"; "}"; "."; "foo"; "{"; "}" ]
   in
-  print_endline (string_of_declaration declaration);
+  print_endline (show_declaration declaration);
   assert (rest = [ "}"; "."; "foo"; "{"; "}" ]);
-  [%expect {| Declaration(margin: (Size (10., Px))) |}]
+  [%expect {| (Declaration ("margin", (Size (10., Px)))) |}]
 
 let%expect_test "parse_declaration" =
   let declaration, rest =
     parse_declaration
       [ "background-color"; ":"; "#"; "191919"; ";"; "}"; "."; "foo"; "{"; "}" ]
   in
-  print_endline (string_of_declaration declaration);
+  print_endline (show_declaration declaration);
   assert (rest = [ "}"; "."; "foo"; "{"; "}" ]);
-  [%expect {| Declaration(background-color: (Rgb (25, 25, 25))) |}]
+  [%expect {| (Declaration ("background-color", (Rgb (25, 25, 25)))) |}]
 
 let parse_declarations tokens =
   let rec aux declarations rest =
@@ -59,12 +59,12 @@ let%expect_test "parse_declarations" =
     |> parse_declarations
   in
   assert (rest = [ "}" ]);
-  declarations |> List.map string_of_declaration |> List.iter print_endline;
+  declarations |> List.map show_declaration |> List.iter print_endline;
   [%expect
     {|
-    Declaration(display: (Keyword "none"))
-    Declaration(color: (Rgb (25, 25, 25)))
-    Declaration(font-size: (Size (14., Px)))
+    (Declaration ("display", (Keyword "none")))
+    (Declaration ("color", (Rgb (25, 25, 25))))
+    (Declaration ("font-size", (Size (14., Px))))
   |}]
 
 let parse_selector tokens =
@@ -88,15 +88,15 @@ let%expect_test "parse_selector" =
   let selector, _ =
     "* {font-size: 14px;}" |> Tokenizer.tokenize |> parse_selector
   in
-  selector |> string_of_selector |> print_endline;
+  selector |> show_selector |> print_endline;
   [%expect {| Universal_selector |}]
 
 let%expect_test "parse_selector" =
   let selector, _ =
     ".alert {color: red;}" |> Tokenizer.tokenize |> parse_selector
   in
-  selector |> string_of_selector |> print_endline;
-  [%expect {| Class_selector(alert) |}]
+  selector |> show_selector |> print_endline;
+  [%expect {| (Class_selector "alert") |}]
 
 let parse_comma_separated_selectors tokens =
   let rec aux selectors rest =
@@ -137,6 +137,12 @@ let parse tokens =
 
 let%expect_test "parse" =
   ".foo,.bar {\n  display: flex;\n  color: red;\n}\n" |> Tokenizer.tokenize
-  |> parse |> string_of_stylesheet |> print_endline;
+  |> parse |> show_stylesheet |> print_endline;
   [%expect
-    {| Stylesheet([Rule([Class_selector(foo); Class_selector(bar)], [Declaration(display: (Keyword "flex")); Declaration(color: (Keyword "red"))])]) |}]
+    {|
+      (Stylesheet
+         [(Rule ([(Class_selector "foo"); (Class_selector "bar")],
+             [(Declaration ("display", (Keyword "flex")));
+               (Declaration ("color", (Keyword "red")))]
+             ))
+           ]) |}]
