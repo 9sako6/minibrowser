@@ -1,12 +1,13 @@
-type color = int * int * int
+type rgb = float * float * float
 
 type rect = {
-  x : int;
-  y : int;
-  width : int;
-  height : int;
+  x : float;
+  y : float;
+  width : float;
+  height : float;
 }
+[@@deriving show { with_path = false }]
 
-type t = color * rect [@@deriving show { with_path = false }]
+type t = Rect of rgb * rect
 
 val build : html:string -> css:string -> t list

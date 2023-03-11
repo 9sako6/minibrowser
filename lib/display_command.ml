@@ -1,24 +1,18 @@
-type color = int * int * int [@@deriving show { with_path = false }]
+type rgb = float * float * float
 
 type rect = {
-  x : int;
-  y : int;
-  width : int;
-  height : int;
+  x : float;
+  y : float;
+  width : float;
+  height : float;
 }
 [@@deriving show { with_path = false }]
 
-type t = color * rect [@@deriving show { with_path = false }]
+type t = Rect of rgb * rect
 
 let rect_of_box box =
   match (Layout.border_box box).rect with
-  | { x; y; width; height } ->
-      {
-        x = int_of_float x;
-        y = int_of_float y;
-        width = int_of_float width;
-        height = int_of_float height;
-      }
+  | { x; y; width; height } -> { x; y; width; height }
 
 let%expect_test "rect_of_box" =
   let box =
@@ -31,7 +25,7 @@ let%expect_test "rect_of_box" =
       }
   in
   box |> rect_of_box |> show_rect |> print_endline;
-  [%expect {| { x = 0; y = 0; width = 24; height = 48 } |}]
+  [%expect {| { x = 0.; y = 0.; width = 24.; height = 48. } |}]
 
 let build_layouts ~html ~css =
   let dom_nodes = html |> Dom.Tokenizer.tokenize |> Dom.Parser.parse in
@@ -45,9 +39,11 @@ let build ~html ~css =
   let rec aux layouts acc =
     match layouts with
     | [] -> acc
-    | Layout.{ box; box_type = _; style_ref = _; children; color } :: rest ->
+    | Layout.{ box; box_type = _; style_ref = _; children; color = r, g, b }
+      :: rest ->
+        let rgb = (float r /. 255., float g /. 255., float b /. 255.) in
         let rect = rect_of_box box in
-        let command = (color, rect) in
+        let command = Rect (rgb, rect) in
         let children_commands = aux children [] in
         aux rest (command :: children_commands)
   in
