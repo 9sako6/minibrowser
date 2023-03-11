@@ -1,4 +1,4 @@
-type color = int * int * int
+type color = int * int * int [@@deriving show { with_path = false }]
 
 type rect = {
   x : int;
@@ -6,16 +6,12 @@ type rect = {
   width : int;
   height : int;
 }
+[@@deriving show { with_path = false }]
 
-type t = color * rect
-
-let show_rect rect =
-  match rect with
-  | { x; y; width; height } ->
-      Printf.sprintf "{x=%d; y=%d; width=%d; height=%d;}" x y width height
+type t = color * rect [@@deriving show { with_path = false }]
 
 let rect_of_box box =
-  match (Layout_box.Box.border_box box).rect with
+  match (Layout.border_box box).rect with
   | { x; y; width; height } ->
       {
         x = int_of_float x;
@@ -26,7 +22,7 @@ let rect_of_box box =
 
 let%expect_test "rect_of_box" =
   let box =
-    Layout_box.Box.
+    Layout.
       {
         rect = { x = 12.00; y = 12.00; width = 0.00; height = 24.00 };
         padding = { top = 12.00; right = 12.00; bottom = 12.00; left = 12.00 };
@@ -35,12 +31,11 @@ let%expect_test "rect_of_box" =
       }
   in
   box |> rect_of_box |> show_rect |> print_endline;
-  [%expect {| {x=0; y=0; width=24; height=48;} |}]
+  [%expect {| { x = 0; y = 0; width = 24; height = 48 } |}]
 
 let rec build layout_box =
-  let color = Layout_box.Block.get_background_color layout_box in
   match layout_box with
-  | Layout_box.Node.{ box; box_type = _; style_ref = _; children } ->
+  | Layout.{ box; box_type = _; style_ref = _; children; color } ->
       let rect = rect_of_box box in
       rect |> show_rect |> print_endline;
       let command = (color, rect) in

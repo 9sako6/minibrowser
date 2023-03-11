@@ -1,6 +1,0 @@
-(library
- (name layout_box)
- (libraries style_tree)
- (inline_tests)
- (preprocess
-  (pps ppx_deriving.show ppx_expect)))

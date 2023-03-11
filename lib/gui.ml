@@ -1,13 +1,11 @@
-open Cairo
-
 let build html_string css_string =
   let dom_nodes = html_string |> Dom.Tokenizer.tokenize |> Dom.Parser.parse in
   let css = css_string |> Css.Tokenizer.tokenize |> Css.Parser.parse in
   let style_nodes =
     dom_nodes |> List.map ref |> List.map (Style_tree.Node.build css)
   in
-  let root = Layout_box.Block.empty ~width:200. () in
-  style_nodes |> List.map (Layout_box.Block.build ~containing_block:root)
+  let root = Layout.empty ~width:200. () in
+  style_nodes |> List.map (Layout.build ~containing_block:root)
 
 let rec render cr commands =
   match commands with
@@ -18,21 +16,21 @@ let rec render cr commands =
       let x1 = x + width in
       let y0 = y in
       let y1 = y + height in
-      set_source_rgba cr 0. 0. 0. 1.;
-      move_to cr (float x0) (float y0);
+      Cairo.set_source_rgba cr 0. 0. 0. 1.;
+      Cairo.move_to cr (float x0) (float y0);
       List.iter
-        (fun (x, y) -> line_to cr (float x) (float y))
+        (fun (x, y) -> Cairo.line_to cr (float x) (float y))
         [ (x1, y0); (x1, y1); (x0, y1) ];
       List.iter
         (fun (x, y) -> print_endline (Printf.sprintf "(%d, %d)" x y))
         [ (x1, y0); (x1, y1); (x0, y1) ];
 
-      set_source_rgba cr
+      Cairo.set_source_rgba cr
         (float_of_int r /. 255.)
         (float_of_int g /. 255.)
         (float_of_int b /. 255.)
         1.;
-      fill cr;
+      Cairo.fill cr;
       render cr rest
 
 let expose _drawing_area html_string css_string cr =
