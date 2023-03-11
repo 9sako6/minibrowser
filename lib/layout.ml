@@ -260,7 +260,6 @@ let position_calculated_block block containing_block =
     containing_block.box.rect.height +. containing_block.box.rect.y
     +. padding.top +. border.top +. margin.top
   in
-  print_endline (Printf.sprintf "(%f, %f)" x y);
   let rect = { block.box.rect with x; y } in
   let box = { rect; padding; border; margin } in
   { block with box }

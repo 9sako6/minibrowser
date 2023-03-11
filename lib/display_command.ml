@@ -37,7 +37,6 @@ let rec build layout_box =
   match layout_box with
   | Layout.{ box; box_type = _; style_ref = _; children; color } ->
       let rect = rect_of_box box in
-      rect |> show_rect |> print_endline;
       let command = (color, rect) in
       let children = List.map build children in
       command :: List.flatten children
