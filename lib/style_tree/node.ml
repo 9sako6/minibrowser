@@ -13,7 +13,7 @@ let empty =
 
 let rec to_string ?(indent = "") = function
   | { node = dom_node; specified_values = map; children } ->
-      let dom_string = Dom.Node.string_of_node ~with_children:false !dom_node in
+      let dom_string = Dom.Node.show !dom_node in
       let map_string = Css.Value_map.to_string map in
       let children_string =
         children
@@ -131,11 +131,11 @@ let%expect_test "build" =
     {|
       --
       Style
-      Element(div; [id="foo"; class="alert"])
+      (Element ("div", [("id", "foo"); ("class", "alert")], [(InnerText "hello")]))
       color: (Keyword "tomato");
         --
         Style
-        InnerText("hello")
+        (InnerText "hello")
     |}]
 
 let%expect_test "build" =
@@ -152,11 +152,11 @@ let%expect_test "build" =
     {|
       --
       Style
-      Element(div; [id="foo"; class="alert"])
+      (Element ("div", [("id", "foo"); ("class", "alert")], [(InnerText "hello")]))
       font-size: (Size (12., Px));
         --
         Style
-        InnerText("hello")
+        (InnerText "hello")
         font-size: (Size (12., Px));
     |}]
 
@@ -175,19 +175,20 @@ let%expect_test "build" =
     {|
       --
       Style
-      Element(div; [id="foo"; class="alert"])
+      (Element ("div", [("id", "foo"); ("class", "alert")],
+         [(InnerText "hello"); (Element ("p", [], [(InnerText "child")]))]))
       color: (Keyword "tomato"); font-size: (Size (12., Px));
         --
         Style
-        InnerText("hello")
+        (InnerText "hello")
         font-size: (Size (12., Px));
         --
         Style
-        Element(p; [])
+        (Element ("p", [], [(InnerText "child")]))
         font-size: (Size (12., Px));
           --
           Style
-          InnerText("child")
+          (InnerText "child")
           font-size: (Size (12., Px));
     |}]
 
@@ -206,10 +207,10 @@ let%expect_test "build node with conflicted CSS rules" =
     {|
       --
       Style
-      Element(div; [class="block"])
+      (Element ("div", [("class", "block")], [(InnerText "hello")]))
       display: (Keyword "inline");
         --
         Style
-        InnerText("hello")
+        (InnerText "hello")
         display: (Keyword "inline");
     |}]

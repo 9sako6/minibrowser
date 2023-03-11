@@ -4,6 +4,7 @@ type rect = {
   width : float;
   height : float;
 }
+[@@deriving show { with_path = false }]
 
 type edge = {
   top : float;
@@ -11,6 +12,7 @@ type edge = {
   bottom : float;
   left : float;
 }
+[@@deriving show { with_path = false }]
 
 type t = {
   rect : rect;
@@ -18,57 +20,7 @@ type t = {
   border : edge;
   margin : edge;
 }
-
-let string_of_rect rect =
-  Printf.sprintf "{x = %.2f; y = %.2f; width = %.2f; height = %.2f;}" rect.x
-    rect.y rect.width rect.height
-
-let%expect_test "string_of_rect" =
-  { x = 123.; y = 23.1; width = 120.; height = 24. }
-  |> string_of_rect |> print_endline;
-  [%expect {| {x = 123.00; y = 23.10; width = 120.00; height = 24.00;} |}]
-
-let string_of_edge edge =
-  Printf.sprintf "{top = %.2f; right = %.2f; bottom = %.2f; left = %.2f;}"
-    edge.top edge.right edge.bottom edge.left
-
-let%expect_test "string_of_edge" =
-  { top = 123.; right = 23.1; bottom = 120.; left = 24. }
-  |> string_of_edge |> print_endline;
-  [%expect {| {top = 123.00; right = 23.10; bottom = 120.00; left = 24.00;} |}]
-
-let string_of_box ?(indent = "") box =
-  let rect_string = box.rect |> string_of_rect in
-  let padding_string = box.padding |> string_of_edge in
-  let border_string = box.border |> string_of_edge in
-  let margin_string = box.margin |> string_of_edge in
-  Printf.sprintf
-    "%s{\n\
-     %s  rect = %s\n\
-     %s  padding = %s\n\
-     %s  border = %s\n\
-     %s  margin = %s\n\
-     %s}"
-    indent indent rect_string indent padding_string indent border_string indent
-    margin_string indent
-
-let%expect_test "string_of_box" =
-  {
-    rect = { x = 123.; y = 23.1; width = 120.; height = 24. };
-    padding = { top = 123.; right = 23.1; bottom = 120.; left = 24. };
-    border = { top = 123.; right = 23.1; bottom = 120.; left = 24. };
-    margin = { top = 123.; right = 23.1; bottom = 120.; left = 24. };
-  }
-  |> string_of_box |> print_endline;
-  [%expect
-    {|
-    {
-      rect = {x = 123.00; y = 23.10; width = 120.00; height = 24.00;}
-      padding = {top = 123.00; right = 23.10; bottom = 120.00; left = 24.00;}
-      border = {top = 123.00; right = 23.10; bottom = 120.00; left = 24.00;}
-      margin = {top = 123.00; right = 23.10; bottom = 120.00; left = 24.00;}
-    }
-  |}]
+[@@deriving show { with_path = false }]
 
 let empty ?(width = 0.) ?(height = 0.) () =
   let rect = { x = 0.; y = 0.; width; height } in
@@ -180,16 +132,14 @@ let%expect_test "width_calculated_box" =
     ~margin_left:(Size (0., Px))
     ~margin_right:(Size (0., Px))
     (empty ~width:100. ())
-  |> string_of_box |> print_endline;
+  |> show |> print_endline;
 
   [%expect
     {|
-      {
-        rect = {x = 0.00; y = 0.00; width = 100.00; height = 0.00;}
-        padding = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
-        border = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
-        margin = {top = 0.00; right = 0.00; bottom = 0.00; left = 0.00;}
-      }
+      { rect = { x = 0.; y = 0.; width = 100.; height = 0. };
+        padding = { top = 0.; right = 0.; bottom = 0.; left = 0. };
+        border = { top = 0.; right = 0.; bottom = 0.; left = 0. };
+        margin = { top = 0.; right = 0.; bottom = 0.; left = 0. } }
   |}]
 
 let expanded_by edge rect =
@@ -213,14 +163,11 @@ let%expect_test "margin_box" =
   let padding = { top = 2.; right = 2.; bottom = 2.; left = 2. } in
   let border = { top = 5.; right = 5.; bottom = 5.; left = 5. } in
   let margin = { top = 100.; right = 100.; bottom = 100.; left = 100. } in
-  { rect; padding; border; margin }
-  |> margin_box |> string_of_box |> print_endline;
+  { rect; padding; border; margin } |> margin_box |> show |> print_endline;
   [%expect
     {| 
-      {
-        rect = {x = -107.00; y = -107.00; width = 224.00; height = 224.00;}
-        padding = {top = 2.00; right = 2.00; bottom = 2.00; left = 2.00;}
-        border = {top = 5.00; right = 5.00; bottom = 5.00; left = 5.00;}
-        margin = {top = 100.00; right = 100.00; bottom = 100.00; left = 100.00;}
-      }
+      { rect = { x = -107.; y = -107.; width = 224.; height = 224. };
+        padding = { top = 2.; right = 2.; bottom = 2.; left = 2. };
+        border = { top = 5.; right = 5.; bottom = 5.; left = 5. };
+        margin = { top = 100.; right = 100.; bottom = 100.; left = 100. } }
   |}]

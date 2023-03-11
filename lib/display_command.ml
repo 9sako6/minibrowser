@@ -9,7 +9,7 @@ type rect = {
 
 type t = color * rect
 
-let string_of_rect rect =
+let show_rect rect =
   match rect with
   | { x; y; width; height } ->
       Printf.sprintf "{x=%d; y=%d; width=%d; height=%d;}" x y width height
@@ -34,7 +34,7 @@ let%expect_test "rect_of_box" =
         margin = { top = 0.00; right = -24.00; bottom = 0.00; left = 0.00 };
       }
   in
-  box |> rect_of_box |> string_of_rect |> print_endline;
+  box |> rect_of_box |> show_rect |> print_endline;
   [%expect {| {x=0; y=0; width=24; height=48;} |}]
 
 let rec build layout_box =
@@ -42,7 +42,7 @@ let rec build layout_box =
   match layout_box with
   | Layout_box.Node.{ box; box_type = _; style_ref = _; children } ->
       let rect = rect_of_box box in
-      rect |> string_of_rect |> print_endline;
+      rect |> show_rect |> print_endline;
       let command = (color, rect) in
       let children = List.map build children in
       command :: List.flatten children

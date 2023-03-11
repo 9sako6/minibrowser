@@ -3,4 +3,4 @@
  (libraries css dom)
  (inline_tests)
  (preprocess
-  (pps ppx_expect)))
+  (pps ppx_deriving.show ppx_expect)))

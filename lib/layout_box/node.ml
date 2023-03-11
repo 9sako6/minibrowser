@@ -24,7 +24,7 @@ let rec to_string ?(indent = "") = function
         | Dom.Node.InnerText text ->
             Printf.sprintf "%sInnerText(\"%s\")" indent text
       in
-      let box_string = Box.string_of_box ~indent box in
+      let box_string = Box.show box in
       let box_type_string = string_of_box_type box_type in
       let children_string =
         children

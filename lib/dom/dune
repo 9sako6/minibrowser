@@ -3,4 +3,4 @@
  (libraries base str)
  (inline_tests)
  (preprocess
-  (pps ppx_expect ppx_inline_test)))
+  (pps ppx_deriving.show ppx_expect ppx_inline_test)))
