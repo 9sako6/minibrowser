@@ -7,3 +7,4 @@ type t = {
 val empty : unit -> t
 val build_styles : html:string -> css:string -> t list
 val get_background_color : t -> int * int * int
+val to_string : ?indent:string -> t -> string

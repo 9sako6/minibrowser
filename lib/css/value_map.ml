@@ -7,7 +7,7 @@ let find key (map : t) = Value_map.find key map
 let bindings (map : t) = Value_map.bindings map
 let add key value (map : t) = Value_map.add key value map
 
-let to_string map =
+let pp map =
   let bindings = Value_map.bindings map in
   let rec aux bindings acc =
     match bindings with

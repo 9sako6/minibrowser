@@ -1,3 +1,6 @@
-(tests
- (names layout_test style_test)
- (libraries minibrowser))
+(library
+ (name minibrowser_tests)
+ (inline_tests)
+ (libraries minibrowser)
+ (preprocess
+  (pps ppx_deriving.show ppx_expect)))

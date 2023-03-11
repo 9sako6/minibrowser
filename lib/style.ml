@@ -14,7 +14,7 @@ let empty () =
 let rec to_string ?(indent = "") = function
   | { node = dom_node; specified_values = map; children } ->
       let dom_string = Dom.Node.show !dom_node in
-      let map_string = Css.Value_map.to_string map in
+      let map_string = Css.Value_map.pp map in
       let children_string =
         children
         |> List.map (to_string ~indent:(indent ^ "  "))
@@ -121,104 +121,6 @@ let build_styles ~html ~css =
   let dom_nodes = html |> Dom.Tokenizer.tokenize |> Dom.Parser.parse in
   let stylesheet = css |> Css.Tokenizer.tokenize |> Css.Parser.parse in
   dom_nodes |> List.map ref |> List.map (build stylesheet)
-
-let%expect_test "build" =
-  let dom_node_ref =
-    "<div id=\"foo\" class=\"alert\">hello</div>" |> Dom.Tokenizer.tokenize
-    |> Dom.Parser.parse |> List.hd |> ref
-  in
-  let stylesheet =
-    ".alert {color: tomato;}" |> Css.Tokenizer.tokenize |> Css.Parser.parse
-  in
-  let style = build stylesheet dom_node_ref in
-  style |> to_string |> print_endline;
-  [%expect
-    {|
-      --
-      Style
-      (Element ("div", [("id", "foo"); ("class", "alert")], [(InnerText "hello")]))
-      color: (Keyword "tomato");
-        --
-        Style
-        (InnerText "hello")
-    |}]
-
-let%expect_test "build" =
-  let dom_node_ref =
-    "<div id=\"foo\" class=\"alert\">hello</div>" |> Dom.Tokenizer.tokenize
-    |> Dom.Parser.parse |> List.hd |> ref
-  in
-  let stylesheet =
-    "* {font-size: 12px;}" |> Css.Tokenizer.tokenize |> Css.Parser.parse
-  in
-  let style = build stylesheet dom_node_ref in
-  style |> to_string |> print_endline;
-  [%expect
-    {|
-      --
-      Style
-      (Element ("div", [("id", "foo"); ("class", "alert")], [(InnerText "hello")]))
-      font-size: (Size (12., Px));
-        --
-        Style
-        (InnerText "hello")
-        font-size: (Size (12., Px));
-    |}]
-
-let%expect_test "build" =
-  let dom_node_ref =
-    "<div id=\"foo\" class=\"alert\">hello<p>child</p></div>"
-    |> Dom.Tokenizer.tokenize |> Dom.Parser.parse |> List.hd |> ref
-  in
-  let stylesheet =
-    ".alert {color: tomato;} * {font-size: 12px;}" |> Css.Tokenizer.tokenize
-    |> Css.Parser.parse
-  in
-  let style = build stylesheet dom_node_ref in
-  style |> to_string |> print_endline;
-  [%expect
-    {|
-      --
-      Style
-      (Element ("div", [("id", "foo"); ("class", "alert")],
-         [(InnerText "hello"); (Element ("p", [], [(InnerText "child")]))]))
-      color: (Keyword "tomato"); font-size: (Size (12., Px));
-        --
-        Style
-        (InnerText "hello")
-        font-size: (Size (12., Px));
-        --
-        Style
-        (Element ("p", [], [(InnerText "child")]))
-        font-size: (Size (12., Px));
-          --
-          Style
-          (InnerText "child")
-          font-size: (Size (12., Px));
-    |}]
-
-let%expect_test "build node with conflicted CSS rules" =
-  let dom_node_ref =
-    "<div class=\"block\">hello</div>" |> Dom.Tokenizer.tokenize
-    |> Dom.Parser.parse |> List.hd |> ref
-  in
-  let stylesheet =
-    ".block {display: block;} * {display: inline;}" |> Css.Tokenizer.tokenize
-    |> Css.Parser.parse
-  in
-  let style = build stylesheet dom_node_ref in
-  style |> to_string |> print_endline;
-  [%expect
-    {|
-      --
-      Style
-      (Element ("div", [("class", "block")], [(InnerText "hello")]))
-      display: (Keyword "inline");
-        --
-        Style
-        (InnerText "hello")
-        display: (Keyword "inline");
-    |}]
 
 let get_background_color style =
   let default_color = (0, 0, 0) in
