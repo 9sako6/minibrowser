@@ -3,16 +3,12 @@ open Node
 
 exception NoEndTag
 
-let omit_end_tag_tokens tokens =
-  match Base.List.rev tokens with
-  | ">" :: _ :: "/" :: "<" :: rest -> Base.List.rev rest
-  | _ -> raise NoEndTag
-
-let%expect_test "omit_end_tag_tokens" =
-  "<li>bob</li></div>" |> tokenize |> omit_end_tag_tokens |> print_tokens;
-  [%expect {| <,li,>,bob,<,/,li,> |}]
-
 let parse_children_tokens tokens =
+  let omit_end_tag_tokens tokens =
+    match Base.List.rev tokens with
+    | ">" :: _ :: "/" :: "<" :: rest -> Base.List.rev rest
+    | _ -> raise NoEndTag
+  in
   (* When the score is positive, some tag is open. *)
   let rec aux score children tails =
     match tails with
@@ -124,14 +120,16 @@ let%expect_test "parse text" =
 let%expect_test "parse div tag with attribute" =
   tokenize "<div class=\"red\">hi</div>"
   |> parse |> List.hd |> show |> print_endline;
-  [%expect {|
+  [%expect
+    {|
     (Element ("div", [("class", "red")], [(InnerText "hi")]))
   |}]
 
 let%expect_test "parse div tag with newline" =
   tokenize "\n  <div class=\"red\">\n    hi\n  </div>"
   |> parse |> List.hd |> show |> print_endline;
-  [%expect {|
+  [%expect
+    {|
     (Element ("div", [("class", "red")], [(InnerText "hi")]))
   |}]
 
