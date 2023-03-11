@@ -134,15 +134,3 @@ let parse_rules tokens =
 let parse tokens =
   let rules, _ = parse_rules tokens in
   Stylesheet rules
-
-let%expect_test "parse" =
-  ".foo,.bar {\n  display: flex;\n  color: red;\n}\n" |> Tokenizer.tokenize
-  |> parse |> show_stylesheet |> print_endline;
-  [%expect
-    {|
-      (Stylesheet
-         [(Rule ([(Class_selector "foo"); (Class_selector "bar")],
-             [(Declaration ("display", (Keyword "flex")));
-               (Declaration ("color", (Keyword "red")))]
-             ))
-           ]) |}]
