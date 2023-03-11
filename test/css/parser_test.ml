@@ -37,6 +37,10 @@ let%test_module "parse" =
                ])
         |}]
 
+    let%expect_test "parse empty declaration" =
+      ".foo {}" |> tokenize |> parse |> show_stylesheet |> print_endline;
+      [%expect {| (Stylesheet [(Rule ([(Class_selector "foo")], []))]) |}]
+
     let%expect_test "parse multiple declarations" =
       ".foo {\n  display: none;\n  color: #191919;\n  font-size: 14px;\n}\n"
       |> tokenize |> parse |> show_stylesheet |> print_endline;
