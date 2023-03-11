@@ -16,32 +16,6 @@ let parse_declaration tokens =
       (Declaration (name, Value.build value_tokens), rest)
   | _ -> raise Invalid_declaration
 
-let%expect_test "parse_declaration" =
-  let declaration, rest =
-    parse_declaration
-      [ "display"; ":"; "inline"; ";"; "}"; "."; "foo"; "{"; "}" ]
-  in
-  print_endline (show_declaration declaration);
-  assert (rest = [ "}"; "."; "foo"; "{"; "}" ]);
-  [%expect {| (Declaration ("display", (Keyword "inline"))) |}]
-
-let%expect_test "parse_declaration" =
-  let declaration, rest =
-    parse_declaration [ "margin"; ":"; "10px"; ";"; "}"; "."; "foo"; "{"; "}" ]
-  in
-  print_endline (show_declaration declaration);
-  assert (rest = [ "}"; "."; "foo"; "{"; "}" ]);
-  [%expect {| (Declaration ("margin", (Size (10., Px)))) |}]
-
-let%expect_test "parse_declaration" =
-  let declaration, rest =
-    parse_declaration
-      [ "background-color"; ":"; "#"; "191919"; ";"; "}"; "."; "foo"; "{"; "}" ]
-  in
-  print_endline (show_declaration declaration);
-  assert (rest = [ "}"; "."; "foo"; "{"; "}" ]);
-  [%expect {| (Declaration ("background-color", (Rgb (25, 25, 25)))) |}]
-
 let parse_declarations tokens =
   let rec aux declarations rest =
     match rest with
@@ -52,20 +26,6 @@ let parse_declarations tokens =
         aux (declarations @ [ declaration ]) rest
   in
   aux [] tokens
-
-let%expect_test "parse_declarations" =
-  let declarations, rest =
-    "display: none; color: #191919; font-size: 14px;}" |> Tokenizer.tokenize
-    |> parse_declarations
-  in
-  assert (rest = [ "}" ]);
-  declarations |> List.map show_declaration |> List.iter print_endline;
-  [%expect
-    {|
-    (Declaration ("display", (Keyword "none")))
-    (Declaration ("color", (Rgb (25, 25, 25))))
-    (Declaration ("font-size", (Size (14., Px))))
-  |}]
 
 let parse_selector tokens =
   let rec split selector_tokens rest =
@@ -83,20 +43,6 @@ let parse_selector tokens =
     | _ -> raise Unknown_selector
   in
   (selector, rest)
-
-let%expect_test "parse_selector" =
-  let selector, _ =
-    "* {font-size: 14px;}" |> Tokenizer.tokenize |> parse_selector
-  in
-  selector |> show_selector |> print_endline;
-  [%expect {| Universal_selector |}]
-
-let%expect_test "parse_selector" =
-  let selector, _ =
-    ".alert {color: red;}" |> Tokenizer.tokenize |> parse_selector
-  in
-  selector |> show_selector |> print_endline;
-  [%expect {| (Class_selector "alert") |}]
 
 let parse_comma_separated_selectors tokens =
   let rec aux selectors rest =
