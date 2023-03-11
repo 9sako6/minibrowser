@@ -45,19 +45,20 @@ let%expect_test "parse_children_tokens" =
     <,p,>,rest,<,/,p,>
   |}]
 
-let parse_attributes tokens =
-  let rec aux attributes rest =
-    match rest with
-    | [] -> (attributes, [])
-    | ">" :: rest -> (attributes, rest)
-    | name :: "=" :: "\"" :: value :: "\"" :: rest ->
-        let attribute = Attribute.build name value in
-        aux (attributes @ [ attribute ]) rest
-    | _ -> ([], rest)
-  in
-  aux [] tokens
-
 let rec parse tokens =
+  let parse_attributes tokens =
+    let rec aux attributes rest =
+      match rest with
+      | [] -> (attributes, [])
+      | ">" :: rest -> (attributes, rest)
+      | name :: "=" :: "\"" :: value :: "\"" :: rest ->
+          let attribute = Attribute.build name value in
+          aux (attributes @ [ attribute ]) rest
+      | _ -> ([], rest)
+    in
+    aux [] tokens
+  in
+
   let rec aux nodes rest =
     match rest with
     | [] -> (nodes, [])
