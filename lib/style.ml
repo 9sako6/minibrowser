@@ -7,7 +7,7 @@ type t = {
 let empty () =
   {
     node = ref Dom.Node.empty;
-    specified_values = Css.Value_map.empty;
+    specified_values = Css.Value_map.empty ();
     children = [];
   }
 
@@ -113,7 +113,7 @@ let rec build stylesheet dom_node_ref =
   let style_children =
     node_children |> List.map ref |> List.map (build stylesheet)
   in
-  let map = Css.Value_map.empty in
+  let map = Css.Value_map.empty () in
   let map = add_rules matched_rules map in
   { node = dom_node_ref; specified_values = map; children = style_children }
 
