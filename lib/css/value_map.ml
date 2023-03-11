@@ -1,11 +1,7 @@
 module Value_map = Map.Make (String)
+include Value_map
 
 type t = Value.t Value_map.t
-
-let empty () = Value_map.empty
-let find key (map : t) = Value_map.find key map
-let bindings (map : t) = Value_map.bindings map
-let add key value (map : t) = Value_map.add key value map
 
 let pp map =
   let bindings = Value_map.bindings map in
@@ -27,13 +23,13 @@ let rec lookup keys default_value map =
 
 let%expect_test "lookup" =
   let value = Value.Size (12., Px) in
-  empty () |> add "padding" value
-  |> lookup [ "padding-left"; "padding" ] (Keyword "default")
+  empty |> add "padding" value
+  |> lookup [ "padding-left"; "padding" ] (Value.Keyword "default")
   |> Value.show |> print_endline;
   [%expect {| (Size (12., Px)) |}]
 
 let%expect_test "lookup" =
-  empty ()
-  |> lookup [ "padding-left"; "padding" ] (Keyword "default")
+  empty
+  |> lookup [ "padding-left"; "padding" ] (Value.Keyword "default")
   |> Value.show |> print_endline;
   [%expect {| (Keyword "default") |}]

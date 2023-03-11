@@ -1,6 +1,6 @@
 type t
 
-val empty : unit -> t
+val empty : t
 val find : string -> t -> Value.t
 val bindings : t -> (string * Value.t) list
 val add : string -> Value.t -> t -> t
