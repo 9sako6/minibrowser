@@ -9,6 +9,9 @@ type t =
   | Rgb of int * int * int
 [@@deriving show { with_path = false }]
 
+let rgb_of_hex hex_string =
+  Scanf.sscanf hex_string "%2x%2x%2x" (fun r g b -> (r, g, b))
+
 let get_size_value value =
   match value with
   | Size (size, _) -> size
@@ -33,7 +36,7 @@ let build tokens =
   let number_regexp = Str.regexp "[0-9]+" in
   match tokens with
   | "#" :: [ hex_string ] ->
-      let r, g, b = Color.rgb_of_hex hex_string in
+      let r, g, b = rgb_of_hex hex_string in
       Rgb (r, g, b)
   | head :: _ -> (
       match

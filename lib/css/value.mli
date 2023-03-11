@@ -1,7 +1,7 @@
 exception Invalid_size_value of string
 exception Invalid_value of string
 
-type size_unit = Px [@@deriving show { with_path = false }]
+type size_unit = Px
 
 type t =
   | Keyword of string

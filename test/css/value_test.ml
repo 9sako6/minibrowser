@@ -12,9 +12,9 @@ let%expect_test "build" =
   [ "12px" ] |> build |> show |> print_endline;
   [%expect {| (Size (12., Px)) |}]
 
-let%expect_test "build" =
-  [ "#"; "191919" ] |> build |> show |> print_endline;
-  [%expect {| (Rgb (25, 25, 25)) |}]
+let%expect_test "build value of a hex color code" =
+  [ "#"; "bb22FF" ] |> build |> show |> print_endline;
+  [%expect {| (Rgb (187, 34, 255)) |}]
 
 let%expect_test "build" =
   [ "inline" ] |> build |> show |> print_endline;
