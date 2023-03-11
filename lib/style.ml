@@ -6,9 +6,9 @@ type t = {
 
 let empty () =
   {
+    node = ref Dom.Node.empty;
     specified_values = Css.Value_map.empty;
     children = [];
-    node = ref Dom.Node.empty;
   }
 
 let rec to_string ?(indent = "") = function
