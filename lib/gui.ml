@@ -7,7 +7,7 @@ let build html_string css_string =
   let root = Layout.empty ~width:200. () in
   style_nodes |> List.map (Layout.build ~containing_block:root)
 
-let rec render cr commands =
+let rec _render cr commands =
   match commands with
   | [] -> true
   | Display_command.((r, g, b), { x; y; width; height }) :: rest ->
@@ -31,14 +31,14 @@ let rec render cr commands =
         (float_of_int b /. 255.)
         1.;
       Cairo.fill cr;
-      render cr rest
+      _render cr rest
 
 let expose _drawing_area html_string css_string cr =
   let nodes = build html_string css_string in
-  let _ = nodes |> List.map Display_command.build |> List.map (render cr) in
+  let _ = nodes |> List.map Display_command.build |> List.map (_render cr) in
   true
 
-let main html_string css_string () =
+let render html_string css_string () =
   let _ = GMain.init () in
   let window =
     GWindow.window ~title:"minibrowser" ~width:800 ~height:400 ~resizable:true
