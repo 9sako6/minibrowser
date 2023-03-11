@@ -33,17 +33,22 @@ let%expect_test "rect_of_box" =
   box |> rect_of_box |> show_rect |> print_endline;
   [%expect {| { x = 0; y = 0; width = 24; height = 48 } |}]
 
-let rec build layout_box =
-  match layout_box with
-  | Layout.{ box; box_type = _; style_ref = _; children; color } ->
-      let rect = rect_of_box box in
-      let command = (color, rect) in
-      let children = List.map build children in
-      command :: List.flatten children
-
 let build_layouts ~html ~css =
   let dom_nodes = html |> Dom.Tokenizer.tokenize |> Dom.Parser.parse in
   let stylesheet = css |> Css.Tokenizer.tokenize |> Css.Parser.parse in
   let styles = dom_nodes |> List.map ref |> List.map (Style.build stylesheet) in
-  let root = Layout.empty ~width:200. () in
-  styles |> List.map (Layout.build ~containing_block:root)
+  let layout_root = Layout.empty ~width:200. () in
+  styles |> List.map (Layout.build ~containing_block:layout_root)
+
+let build ~html ~css =
+  let layouts = build_layouts ~html ~css in
+  let rec aux layouts acc =
+    match layouts with
+    | [] -> acc
+    | Layout.{ box; box_type = _; style_ref = _; children; color } :: rest ->
+        let rect = rect_of_box box in
+        let command = (color, rect) in
+        let children_commands = aux children [] in
+        aux rest (command :: children_commands)
+  in
+  aux layouts []

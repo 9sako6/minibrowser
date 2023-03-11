@@ -1,5 +1,5 @@
 let expose _drawing_area html css context =
-  let nodes = Display_command.build_layouts ~html ~css in
+  let commands = Display_command.build ~html ~css in
   let rec aux context commands =
     match commands with
     | [] -> true
@@ -22,7 +22,7 @@ let expose _drawing_area html css context =
         Cairo.fill context;
         aux context rest
   in
-  ignore (nodes |> List.map Display_command.build |> List.map (aux context));
+  ignore (aux context commands);
   true
 
 let render html_string css_string () =
