@@ -1,0 +1,6 @@
+(library
+ (name css_tests)
+ (inline_tests)
+ (libraries css)
+ (preprocess
+  (pps ppx_deriving.show ppx_expect)))

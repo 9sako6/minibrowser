@@ -35,7 +35,3 @@ let tokenize input_string =
   tokens
 
 let print_tokens tokens = print_endline (String.concat " " tokens)
-
-let%expect_test "tokenize" =
-  tokenize ".foo { display: none; }" |> print_tokens;
-  [%expect {|. foo { display : none ; }|}]
