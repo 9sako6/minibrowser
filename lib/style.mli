@@ -5,5 +5,5 @@ type t = {
 }
 
 val empty : unit -> t
-val build : Css.Node.stylesheet -> Dom.Node.t ref -> t
+val build_styles : html:string -> css:string -> t list
 val get_background_color : t -> int * int * int

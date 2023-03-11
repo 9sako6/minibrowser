@@ -10,4 +10,4 @@ type rect = {
 
 type t = Rect of rgb * rect
 
-val build : html:string -> css:string -> t list
+val build : max_width:float -> html:string -> css:string -> t list

@@ -13,8 +13,8 @@ let draw_rect rect context =
       Cairo.set_source_rgba context r g b 1.;
       Cairo.fill context
 
-let draw _drawing_area html css context =
-  let commands = Display_command.build ~html ~css in
+let draw _drawing_area ~max_width ~html ~css context =
+  let commands = Display_command.build ~max_width ~html ~css in
   let rec aux context commands =
     match commands with
     | [] -> true
@@ -34,7 +34,9 @@ let render html_string css_string () =
   ignore (window#connect#destroy ~callback:GMain.quit);
 
   let d = GMisc.drawing_area ~packing:window#add () in
-  ignore (d#misc#connect#draw ~callback:(draw d html_string css_string));
+  ignore
+    (d#misc#connect#draw
+       ~callback:(draw d ~max_width:200. ~html:html_string ~css:css_string));
 
   window#show ();
   GMain.main ()

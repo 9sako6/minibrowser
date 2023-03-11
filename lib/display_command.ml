@@ -27,8 +27,8 @@ let%expect_test "rect_of_box" =
   box |> rect_of_box |> show_rect |> print_endline;
   [%expect {| { x = 0.; y = 0.; width = 24.; height = 48. } |}]
 
-let build ~html ~css =
-  let root_layout = Layout.empty ~width:200. () in
+let build ~max_width ~html ~css =
+  let root_layout = Layout.empty ~width:max_width () in
   let layouts = Layout.build_layouts ~root_layout ~html ~css in
   let rec aux layouts acc =
     match layouts with

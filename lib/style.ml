@@ -117,6 +117,11 @@ let rec build stylesheet dom_node_ref =
   let map = add_rules matched_rules map in
   { node = dom_node_ref; specified_values = map; children = style_children }
 
+let build_styles ~html ~css =
+  let dom_nodes = html |> Dom.Tokenizer.tokenize |> Dom.Parser.parse in
+  let stylesheet = css |> Css.Tokenizer.tokenize |> Css.Parser.parse in
+  dom_nodes |> List.map ref |> List.map (build stylesheet)
+
 let%expect_test "build" =
   let dom_node_ref =
     "<div id=\"foo\" class=\"alert\">hello</div>" |> Dom.Tokenizer.tokenize
