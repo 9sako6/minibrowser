@@ -1,3 +1,6 @@
-(tests
- (names parser_test)
- (libraries dom alcotest))
+(library
+ (name dom_tests)
+ (inline_tests)
+ (libraries dom)
+ (preprocess
+  (pps ppx_inline_test ppx_expect)))
