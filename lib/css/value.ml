@@ -1,13 +1,13 @@
 exception Invalid_size_value of string
 exception Invalid_value of string
 
-type size_unit = Px [@@deriving show]
+type size_unit = Px [@@deriving show { with_path = false }]
 
 type t =
   | Keyword of string
   | Size of float * size_unit
   | Rgb of int * int * int
-[@@deriving show]
+[@@deriving show { with_path = false }]
 
 let get_size_value value =
   match value with
@@ -30,11 +30,11 @@ let ( + ) left right =
 
 let%expect_test "( + )" =
   Size (10., Px) + Size (2., Px) |> show |> print_endline;
-  [%expect {| (Value.Size (12., Value.Px)) |}]
+  [%expect {| (Size (12., Px)) |}]
 
 let%expect_test "( + )" =
   Size (10., Px) + Keyword "auto" |> show |> print_endline;
-  [%expect {| (Value.Size (10., Value.Px)) |}]
+  [%expect {| (Size (10., Px)) |}]
 
 let build tokens =
   let px_regexp = Str.regexp "[0-9]+px" in
@@ -56,12 +56,12 @@ let build tokens =
 
 let%expect_test "build" =
   [ "12px" ] |> build |> show |> print_endline;
-  [%expect {| (Value.Size (12., Value.Px)) |}]
+  [%expect {| (Size (12., Px)) |}]
 
 let%expect_test "build" =
   [ "#"; "191919" ] |> build |> show |> print_endline;
-  [%expect {| (Value.Rgb (25, 25, 25)) |}]
+  [%expect {| (Rgb (25, 25, 25)) |}]
 
 let%expect_test "build" =
   [ "inline" ] |> build |> show |> print_endline;
-  [%expect {| (Value.Keyword "inline") |}]
+  [%expect {| (Keyword "inline") |}]

@@ -132,7 +132,7 @@ let%expect_test "build" =
       --
       Style
       Element(div; [id="foo"; class="alert"])
-      color: (Value.Keyword "tomato");
+      color: (Keyword "tomato");
         --
         Style
         InnerText("hello")
@@ -153,11 +153,11 @@ let%expect_test "build" =
       --
       Style
       Element(div; [id="foo"; class="alert"])
-      font-size: (Value.Size (12., Value.Px));
+      font-size: (Size (12., Px));
         --
         Style
         InnerText("hello")
-        font-size: (Value.Size (12., Value.Px));
+        font-size: (Size (12., Px));
     |}]
 
 let%expect_test "build" =
@@ -176,19 +176,19 @@ let%expect_test "build" =
       --
       Style
       Element(div; [id="foo"; class="alert"])
-      color: (Value.Keyword "tomato"); font-size: (Value.Size (12., Value.Px));
+      color: (Keyword "tomato"); font-size: (Size (12., Px));
         --
         Style
         InnerText("hello")
-        font-size: (Value.Size (12., Value.Px));
+        font-size: (Size (12., Px));
         --
         Style
         Element(p; [])
-        font-size: (Value.Size (12., Value.Px));
+        font-size: (Size (12., Px));
           --
           Style
           InnerText("child")
-          font-size: (Value.Size (12., Value.Px));
+          font-size: (Size (12., Px));
     |}]
 
 let%expect_test "build node with conflicted CSS rules" =
@@ -207,9 +207,9 @@ let%expect_test "build node with conflicted CSS rules" =
       --
       Style
       Element(div; [class="block"])
-      display: (Value.Keyword "inline");
+      display: (Keyword "inline");
         --
         Style
         InnerText("hello")
-        display: (Value.Keyword "inline");
+        display: (Keyword "inline");
     |}]

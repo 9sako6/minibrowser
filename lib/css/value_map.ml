@@ -30,10 +30,10 @@ let%expect_test "lookup" =
   empty |> add "padding" value
   |> lookup [ "padding-left"; "padding" ] (Keyword "default")
   |> Value.show |> print_endline;
-  [%expect {| (Value.Size (12., Value.Px)) |}]
+  [%expect {| (Size (12., Px)) |}]
 
 let%expect_test "lookup" =
   empty
   |> lookup [ "padding-left"; "padding" ] (Keyword "default")
   |> Value.show |> print_endline;
-  [%expect {| (Value.Keyword "default") |}]
+  [%expect {| (Keyword "default") |}]
