@@ -1,6 +1,6 @@
 (library
  (name minibrowser)
- (libraries str dom css lablgtk3)
+ (libraries dom css lablgtk3)
  (inline_tests)
  (preprocess
   (pps ppx_deriving.show ppx_expect)))
