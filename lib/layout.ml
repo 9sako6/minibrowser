@@ -36,8 +36,6 @@ type box_type =
 
 type color = int * int * int
 
-let default_color = (0, 0, 0)
-
 type t = {
   box : box;
   box_type : box_type;
@@ -274,20 +272,14 @@ let empty ?(width = 0.) ?(height = 0.) () =
     box_type = Anonymous;
     children = [];
     style_ref = ref (Style.empty ());
-    color = default_color;
+    color = Style.get_background_color (Style.empty ());
   }
 
 (* Build layout tree from style tree. *)
 let rec build ?(containing_block = empty ()) style =
   match style with
   | Style.{ node = _; specified_values; children } as style_node ->
-      let color =
-        try
-          match Css.Value_map.find "background-color" specified_values with
-          | Css.Value.Rgb (r, g, b) -> (r, g, b)
-          | _ -> raise Not_found
-        with Not_found -> default_color
-      in
+      let color = Style.get_background_color style_node in
       let block =
         {
           box =

@@ -214,3 +214,11 @@ let%expect_test "build node with conflicted CSS rules" =
         (InnerText "hello")
         display: (Keyword "inline");
     |}]
+
+let get_background_color style =
+  let default_color = (0, 0, 0) in
+  try
+    match Css.Value_map.find "background-color" style.specified_values with
+    | Css.Value.Rgb (r, g, b) -> (r, g, b)
+    | _ -> raise Not_found
+  with Not_found -> default_color
