@@ -10,3 +10,4 @@ type rect = {
 type t = color * rect [@@deriving show { with_path = false }]
 
 val build : Layout.t -> (Layout.color * rect) list
+val build_layouts : html:string -> css:string -> Layout.t list

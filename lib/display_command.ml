@@ -40,3 +40,10 @@ let rec build layout_box =
       let command = (color, rect) in
       let children = List.map build children in
       command :: List.flatten children
+
+let build_layouts ~html ~css =
+  let dom_nodes = html |> Dom.Tokenizer.tokenize |> Dom.Parser.parse in
+  let stylesheet = css |> Css.Tokenizer.tokenize |> Css.Parser.parse in
+  let styles = dom_nodes |> List.map ref |> List.map (Style.build stylesheet) in
+  let root = Layout.empty ~width:200. () in
+  styles |> List.map (Layout.build ~containing_block:root)
