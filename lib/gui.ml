@@ -2,7 +2,7 @@ let build html_string css_string =
   let dom_nodes = html_string |> Dom.Tokenizer.tokenize |> Dom.Parser.parse in
   let css = css_string |> Css.Tokenizer.tokenize |> Css.Parser.parse in
   let style_nodes =
-    dom_nodes |> List.map ref |> List.map (Style_tree.Node.build css)
+    dom_nodes |> List.map ref |> List.map (Style.build css)
   in
   let root = Layout.empty ~width:200. () in
   style_nodes |> List.map (Layout.build ~containing_block:root)

@@ -41,7 +41,7 @@ let default_color = (0, 0, 0)
 type t = {
   box : box;
   box_type : box_type;
-  style_ref : Style_tree.Node.t ref;
+  style_ref : Style.t ref;
   children : t list;
   color : color;
 }
@@ -273,14 +273,14 @@ let empty ?(width = 0.) ?(height = 0.) () =
     box;
     box_type = Anonymous;
     children = [];
-    style_ref = ref Style_tree.Node.empty;
+    style_ref = ref (Style.empty ());
     color = default_color;
   }
 
 (* Build layout tree from style tree. *)
 let rec build ?(containing_block = empty ()) style =
   match style with
-  | Style_tree.Node.{ node = _; specified_values; children } as style_node ->
+  | Style.{ node = _; specified_values; children } as style_node ->
       let color =
         try
           match Css.Value_map.find "background-color" specified_values with
@@ -337,7 +337,7 @@ let rec build ?(containing_block = empty ()) style =
        |> Css.Tokenizer.tokenize |> Css.Parser.parse
      in
      let style_nodes =
-       dom_nodes |> List.map ref |> List.map (Style_tree.Node.build css)
+       dom_nodes |> List.map ref |> List.map (Style.build css)
      in
      let layout_nodes =
        style_nodes |> List.map (build ~parent_box:(empty_box ~width:200. ()))
@@ -392,7 +392,7 @@ let rec build ?(containing_block = empty ()) style =
        |> Css.Parser.parse
      in
      let style_nodes =
-       dom_nodes |> List.map ref |> List.map (Style_tree.Node.build css)
+       dom_nodes |> List.map ref |> List.map (Style.build css)
      in
      let layout_nodes =
        style_nodes |> List.map (build ~parent_box:(Box.empty ()))

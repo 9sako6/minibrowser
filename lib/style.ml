@@ -4,7 +4,7 @@ type t = {
   children : t list;
 }
 
-let empty =
+let empty () =
   {
     specified_values = Css.Value_map.empty;
     children = [];
