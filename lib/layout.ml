@@ -317,3 +317,9 @@ let rec build ?(containing_block = empty ()) style =
       let block = { block with box } in
       let block = height_calculated_block block in
       { block with box_type; children }
+
+let build_layouts ~root_layout ~html ~css =
+  let dom_nodes = html |> Dom.Tokenizer.tokenize |> Dom.Parser.parse in
+  let stylesheet = css |> Css.Tokenizer.tokenize |> Css.Parser.parse in
+  let styles = dom_nodes |> List.map ref |> List.map (Style.build stylesheet) in
+  styles |> List.map (build ~containing_block:root_layout)

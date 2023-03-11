@@ -35,5 +35,5 @@ type t = {
 }
 
 val border_box : box -> box
-val build : ?containing_block:t -> Style.t -> t
 val empty : ?width:float -> ?height:float -> unit -> t
+val build_layouts : root_layout:t -> html:string -> css:string -> t list
