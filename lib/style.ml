@@ -119,7 +119,7 @@ let rec build stylesheet dom_node_ref =
 
 let build_styles ~html ~css =
   let dom_nodes = html |> Dom.Tokenizer.tokenize |> Dom.Parser.parse in
-  let stylesheet = css |> Css.Tokenizer.tokenize |> Css.Parser.parse in
+  let stylesheet = css |> Css.parse in
   dom_nodes |> List.map ref |> List.map (build stylesheet)
 
 let get_background_color style =
