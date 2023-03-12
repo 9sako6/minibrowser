@@ -25,7 +25,7 @@ let draw _drawing_area ~max_width ~html ~css context =
   ignore (aux context commands);
   true
 
-let render html_string css_string () =
+let render ~html ~css () =
   ignore (GMain.init ());
   let window =
     GWindow.window ~title:"minibrowser" ~width:800 ~height:400 ~resizable:true
@@ -34,9 +34,7 @@ let render html_string css_string () =
   ignore (window#connect#destroy ~callback:GMain.quit);
 
   let d = GMisc.drawing_area ~packing:window#add () in
-  ignore
-    (d#misc#connect#draw
-       ~callback:(draw d ~max_width:200. ~html:html_string ~css:css_string));
+  ignore (d#misc#connect#draw ~callback:(draw d ~max_width:200. ~html ~css));
 
   window#show ();
   GMain.main ()

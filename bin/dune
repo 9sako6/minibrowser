@@ -1,4 +1,4 @@
 (executable
  (public_name minibrowser)
  (name main)
- (libraries minibrowser))
+ (libraries minibrowser core))

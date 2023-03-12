@@ -23,6 +23,7 @@
   ocaml
   dune
   base
+  core
   lablgtk3
   ppx_deriving
   (ppx_expect :with-test)
