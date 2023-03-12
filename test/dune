@@ -1,3 +1,3 @@
 (test
  (name minibrowser_test)
- (libraries minibrowser))
+ (libraries core minibrowser))

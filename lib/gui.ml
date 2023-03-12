@@ -25,16 +25,30 @@ let draw _drawing_area ~max_width ~html ~css context =
   ignore (aux context commands);
   true
 
-let render ~html ~css () =
+let render_on_window ~html ~css ~window_width ~window_height () =
   ignore (GMain.init ());
   let window =
-    GWindow.window ~title:"minibrowser" ~width:800 ~height:400 ~resizable:true
-      ()
+    GWindow.window ~title:"minibrowser" ~width:window_width
+      ~height:window_height ~resizable:true ()
   in
   ignore (window#connect#destroy ~callback:GMain.quit);
 
   let d = GMisc.drawing_area ~packing:window#add () in
-  ignore (d#misc#connect#draw ~callback:(draw d ~max_width:200. ~html ~css));
 
+  ignore
+    (d#misc#connect#draw
+       ~callback:(draw d ~max_width:(float window_width) ~html ~css));
   window#show ();
   GMain.main ()
+
+let render_on_png ~html ~css ?(window_width = 1600) ?(window_height = 900)
+    ~png_file_name () =
+  let surf =
+    Cairo.Image.create Cairo.Image.ARGB32 ~w:window_width ~h:window_height
+  in
+  let cr = Cairo.create surf in
+  ignore (draw () ~max_width:(float window_width) ~html ~css cr);
+  Cairo.PNG.write surf png_file_name
+
+let render ~html ~css ?(window_width = 1600) ?(window_height = 900) () =
+  render_on_window ~html ~css ~window_width ~window_height ()
