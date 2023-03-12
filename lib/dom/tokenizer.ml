@@ -96,46 +96,52 @@ let%test_module "tokenize" =
     let%expect_test "tokenize a tag" =
       "<div>hello</div>" |> tokenize |> [%derive.show: string list]
       |> print_endline;
-      [%expect {| <,div,>,hello,<,/,div,> |}]
+      [%expect {| ["<"; "div"; ">"; "hello"; "<"; "/"; "div"; ">"] |}]
 
     let%expect_test "tokenize a tag with an attribute that has no value" =
       "<button disabled></button>" |> tokenize |> [%derive.show: string list]
       |> print_endline;
-      [%expect {| <,button,disabled,>,<,/,button,> |}]
+      [%expect {| ["<"; "button"; "disabled"; ">"; "<"; "/"; "button"; ">"] |}]
 
     let%expect_test "tokenize a tag with number text" =
       "<div>bob2</div>" |> tokenize |> [%derive.show: string list]
       |> print_endline;
-      [%expect {| <,div,>,bob2,<,/,div,> |}]
+      [%expect {| ["<"; "div"; ">"; "bob2"; "<"; "/"; "div"; ">"] |}]
 
     let%expect_test "tokenize a tag with a white space" =
       "<div>Hello Hello</div>" |> tokenize |> [%derive.show: string list]
       |> print_endline;
-      [%expect {| <,div,>,Hello Hello,<,/,div,> |}]
+      [%expect {| ["<"; "div"; ">"; "Hello Hello"; "<"; "/"; "div"; ">"] |}]
 
     let%expect_test "tokenize a tag with a white space and signs" =
       "<div>Hello, World!</div>" |> tokenize |> [%derive.show: string list]
       |> print_endline;
-      [%expect {| <,div,>,Hello, World!,<,/,div,> |}]
+      [%expect {| ["<"; "div"; ">"; "Hello, World!"; "<"; "/"; "div"; ">"] |}]
 
     let%expect_test "tokenize a tag containing a hyphen in the name" =
       "<my-element></my-element>" |> tokenize |> [%derive.show: string list]
       |> print_endline;
-      [%expect {| <,my-element,>,<,/,my-element,> |}]
+      [%expect {| ["<"; "my-element"; ">"; "<"; "/"; "my-element"; ">"] |}]
 
     let%expect_test "tokenize a tag that has a class attribute" =
       "<div class=\"container\">hello</div>" |> tokenize
       |> [%derive.show: string list] |> print_endline;
-      [%expect {| <,div,class,=,",container,",>,hello,<,/,div,> |}]
+      [%expect {|
+        ["<"; "div"; "class"; "="; "\""; "container"; "\""; ">"; "hello"; "<"; "/";
+          "div"; ">"] |}]
 
     let%expect_test "tokenize a tag that has children" =
       "<ul>\n<li>alice</li>\n<li>bob</li></ul>" |> tokenize
       |> [%derive.show: string list] |> print_endline;
-      [%expect {| <,ul,>,<,li,>,alice,<,/,li,>,<,li,>,bob,<,/,li,>,<,/,ul,> |}]
+      [%expect {|
+        ["<"; "ul"; ">"; "<"; "li"; ">"; "alice"; "<"; "/"; "li"; ">"; "<"; "li";
+          ">"; "bob"; "<"; "/"; "li"; ">"; "<"; "/"; "ul"; ">"] |}]
 
     let%expect_test "tokenize a link tag that has a css path as a href \
                      attribute" =
       "<link href=\"global.css\"></link>" |> tokenize
       |> [%derive.show: string list] |> print_endline;
-      [%expect {| <,link,href,=,",global.css,",>,<,/,link,> |}]
+      [%expect {|
+        ["<"; "link"; "href"; "="; "\""; "global.css"; "\""; ">"; "<"; "/"; "link";
+          ">"] |}]
   end)

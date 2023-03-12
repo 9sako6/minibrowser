@@ -7,17 +7,17 @@ let%test_module "parse" =
     let%expect_test "parse no end tag" =
       ignore ("<div>" |> parse);
       [%expect.unreachable]
-      [@@expect.uncaught_exn {| (Dom.Parser.NoEndTag) |}]
+      [@@expect.uncaught_exn {| (Dom__Parser.NoEndTag) |}]
 
     let%expect_test "parse no end tag with child" =
       ignore ("<div><p>child</p>" |> parse);
       [%expect.unreachable]
-      [@@expect.uncaught_exn {| (Dom.Parser.NoEndTag) |}]
+      [@@expect.uncaught_exn {| (Dom__Parser.NoEndTag) |}]
 
     let%expect_test "parse no end tag bracket" =
       ignore ("<div" |> parse);
       [%expect.unreachable]
-      [@@expect.uncaught_exn {| (Dom.Parser.NoEndTag) |}]
+      [@@expect.uncaught_exn {| (Dom__Parser.NoEndTag) |}]
 
     let%expect_test "parse 1 emtpy tag" =
       "<div></div>" |> parse |> List.map Dom.Node.show
