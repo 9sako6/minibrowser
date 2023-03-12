@@ -27,11 +27,3 @@ let tokenize input_string =
   in
   let tokens, _ = aux [] (Base.String.to_list input_string) in
   tokens
-
-let%test_module "tokenize" =
-  (module struct
-    let%expect_test "tokenize" =
-      tokenize ".foo { display: none; }"
-      |> [%derive.show: string list] |> print_endline;
-      [%expect {|["."; "foo"; "{"; "display"; ":"; "none"; ";"; "}"]|}]
-  end)

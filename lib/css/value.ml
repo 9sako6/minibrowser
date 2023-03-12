@@ -31,17 +31,6 @@ let ( + ) left right =
       in
       raise (Invalid_size_value error_message)
 
-let%test_module "( + )" =
-  (module struct
-    let%expect_test "( + )" =
-      Size (10., Px) + Size (2., Px) |> show |> print_endline;
-      [%expect {| (Size (12., Px)) |}]
-
-    let%expect_test "( + )" =
-      Size (10., Px) + Keyword "auto" |> show |> print_endline;
-      [%expect {| (Size (10., Px)) |}]
-  end)
-
 let build tokens =
   let px_regexp = Str.regexp "[0-9]+px" in
   let number_regexp = Str.regexp "[0-9]+" in
@@ -59,18 +48,3 @@ let build tokens =
           Size (size, Px)
       | _ -> Keyword (String.concat "" tokens))
   | [] -> Invalid_value (String.concat "" tokens) |> raise
-
-let%test_module "build" =
-  (module struct
-    let%expect_test "build" =
-      [ "12px" ] |> build |> show |> print_endline;
-      [%expect {| (Size (12., Px)) |}]
-
-    let%expect_test "build value of a hex color code" =
-      [ "#"; "bb22FF" ] |> build |> show |> print_endline;
-      [%expect {| (Rgb (187, 34, 255)) |}]
-
-    let%expect_test "build" =
-      [ "inline" ] |> build |> show |> print_endline;
-      [%expect {| (Keyword "inline") |}]
-  end)

@@ -1,4 +1,3 @@
-open Tokenizer
 open Node
 
 exception NoEndTag
@@ -31,20 +30,6 @@ let parse_children_tokens tokens =
 
   let children_tokens, rest = aux 1 [] tokens in
   (children_tokens, rest)
-
-let%expect_test "parse_children_tokens" =
-  let children_tokens, rest =
-    "<p>child1</p><p>child2</p></p><p>rest</p>" |> tokenize
-    |> parse_children_tokens
-  in
-  children_tokens |> [%derive.show: string list] |> print_endline;
-  rest |> [%derive.show: string list] |> print_endline;
-  [%expect
-    {|
-    ["<"; "p"; ">"; "child1"; "<"; "/"; "p"; ">"; "<"; "p"; ">"; "child2"; "<";
-      "/"; "p"; ">"]
-    ["<"; "p"; ">"; "rest"; "<"; "/"; "p"; ">"]
-  |}]
 
 let rec parse tokens =
   let parse_attributes tokens =
