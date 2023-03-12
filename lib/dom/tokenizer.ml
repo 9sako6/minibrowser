@@ -1,8 +1,5 @@
 exception Not_matched of string
 
-let print_tokens ?(separator = ",") tokens =
-  print_endline (String.concat separator tokens)
-
 let matched_string regexp string =
   if Str.string_match regexp string 0 then Str.matched_string string
   else Not_matched string |> raise
@@ -93,3 +90,52 @@ let tokenize input_string =
   in
   let tokens, _ = aux [] (Base.String.to_list input_string) in
   tokens
+
+let%test_module "tokenize" =
+  (module struct
+    let%expect_test "tokenize a tag" =
+      "<div>hello</div>" |> tokenize |> [%derive.show: string list]
+      |> print_endline;
+      [%expect {| <,div,>,hello,<,/,div,> |}]
+
+    let%expect_test "tokenize a tag with an attribute that has no value" =
+      "<button disabled></button>" |> tokenize |> [%derive.show: string list]
+      |> print_endline;
+      [%expect {| <,button,disabled,>,<,/,button,> |}]
+
+    let%expect_test "tokenize a tag with number text" =
+      "<div>bob2</div>" |> tokenize |> [%derive.show: string list]
+      |> print_endline;
+      [%expect {| <,div,>,bob2,<,/,div,> |}]
+
+    let%expect_test "tokenize a tag with a white space" =
+      "<div>Hello Hello</div>" |> tokenize |> [%derive.show: string list]
+      |> print_endline;
+      [%expect {| <,div,>,Hello Hello,<,/,div,> |}]
+
+    let%expect_test "tokenize a tag with a white space and signs" =
+      "<div>Hello, World!</div>" |> tokenize |> [%derive.show: string list]
+      |> print_endline;
+      [%expect {| <,div,>,Hello, World!,<,/,div,> |}]
+
+    let%expect_test "tokenize a tag containing a hyphen in the name" =
+      "<my-element></my-element>" |> tokenize |> [%derive.show: string list]
+      |> print_endline;
+      [%expect {| <,my-element,>,<,/,my-element,> |}]
+
+    let%expect_test "tokenize a tag that has a class attribute" =
+      "<div class=\"container\">hello</div>" |> tokenize
+      |> [%derive.show: string list] |> print_endline;
+      [%expect {| <,div,class,=,",container,",>,hello,<,/,div,> |}]
+
+    let%expect_test "tokenize a tag that has children" =
+      "<ul>\n<li>alice</li>\n<li>bob</li></ul>" |> tokenize
+      |> [%derive.show: string list] |> print_endline;
+      [%expect {| <,ul,>,<,li,>,alice,<,/,li,>,<,li,>,bob,<,/,li,>,<,/,ul,> |}]
+
+    let%expect_test "tokenize a link tag that has a css path as a href \
+                     attribute" =
+      "<link href=\"global.css\"></link>" |> tokenize
+      |> [%derive.show: string list] |> print_endline;
+      [%expect {| <,link,href,=,",global.css,",>,<,/,link,> |}]
+  end)

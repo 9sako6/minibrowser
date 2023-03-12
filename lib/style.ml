@@ -53,27 +53,20 @@ let%expect_test "matches" =
       ([ Css.Node.Class_selector "alert"; Css.Node.Universal_selector ], [])
   in
   let dom_node =
-    "<div class=\"alert\" id=\"foo\">alert</div>" |> Dom.Tokenizer.tokenize
-    |> Dom.Parser.parse |> List.hd
+    "<div class=\"alert\" id=\"foo\">alert</div>" |> Dom.parse |> List.hd
   in
   matches dom_node rule |> string_of_bool |> print_endline;
   [%expect {| true |}]
 
 let%expect_test "matches" =
   let rule = Css.Node.Rule ([ Css.Node.Universal_selector ], []) in
-  let dom_node =
-    "<div id=\"foo\">alert</div>" |> Dom.Tokenizer.tokenize |> Dom.Parser.parse
-    |> List.hd
-  in
+  let dom_node = "<div id=\"foo\">alert</div>" |> Dom.parse |> List.hd in
   matches dom_node rule |> string_of_bool |> print_endline;
   [%expect {| true |}]
 
 let%expect_test "matches" =
   let rule = Css.Node.Rule ([ Css.Node.Class_selector "alert" ], []) in
-  let dom_node =
-    "<div id=\"foo\">alert</div>" |> Dom.Tokenizer.tokenize |> Dom.Parser.parse
-    |> List.hd
-  in
+  let dom_node = "<div id=\"foo\">alert</div>" |> Dom.parse |> List.hd in
   matches dom_node rule |> string_of_bool |> print_endline;
   [%expect {| false |}]
 
@@ -118,7 +111,7 @@ let rec build stylesheet dom_node_ref =
   { node = dom_node_ref; specified_values = map; children = style_children }
 
 let build_styles ~html ~css =
-  let dom_nodes = html |> Dom.Tokenizer.tokenize |> Dom.Parser.parse in
+  let dom_nodes = html |> Dom.parse in
   let stylesheet = css |> Css.parse in
   dom_nodes |> List.map ref |> List.map (build stylesheet)
 

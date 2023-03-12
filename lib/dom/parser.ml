@@ -37,8 +37,8 @@ let%expect_test "parse_children_tokens" =
     "<p>child1</p><p>child2</p></p><p>rest</p>" |> tokenize
     |> parse_children_tokens
   in
-  children_tokens |> print_tokens;
-  rest |> print_tokens;
+  children_tokens |> [%derive.show: string list] |> print_endline;
+  rest |> [%derive.show: string list] |> print_endline;
   [%expect
     {|
     <,p,>,child1,<,/,p,>,<,p,>,child2,<,/,p,>
