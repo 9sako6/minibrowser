@@ -30,3 +30,4 @@ _opam/
 
 # Visual regression tests
 test/visual_regression/actual/*.png
+test/visual_regression/diff/*.png

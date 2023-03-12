@@ -11,10 +11,11 @@ let read_fixture_file path =
 
 let compare png_file_name =
   let command =
-    Printf.sprintf "cd %s/test/visual_regression && npm test -- %s %s"
+    Printf.sprintf "cd %s/test/visual_regression && npm test -- %s %s %s"
       root_path_from_exe
       ("expected/" ^ png_file_name)
       ("actual/" ^ png_file_name)
+      ("diff/" ^ png_file_name)
   in
   Sys.command command
 
