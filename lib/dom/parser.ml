@@ -41,8 +41,9 @@ let%expect_test "parse_children_tokens" =
   rest |> [%derive.show: string list] |> print_endline;
   [%expect
     {|
-    <,p,>,child1,<,/,p,>,<,p,>,child2,<,/,p,>
-    <,p,>,rest,<,/,p,>
+    ["<"; "p"; ">"; "child1"; "<"; "/"; "p"; ">"; "<"; "p"; ">"; "child2"; "<";
+      "/"; "p"; ">"]
+    ["<"; "p"; ">"; "rest"; "<"; "/"; "p"; ">"]
   |}]
 
 let rec parse tokens =
