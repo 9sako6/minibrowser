@@ -216,37 +216,40 @@ let height_calculated_block block =
   { block with box }
 
 let position_calculated_block block containing_block =
-  (* let box = Box.position_calculated_box block.box in *)
-  let style_map = !(block.style_ref).specified_values in
-  let zero = Css.Value.(Size (0., Px)) in
-  let lookup keys = Css.Value_map.lookup keys zero style_map in
-  let padding_top = lookup [ "padding-top"; "padding" ] in
-  let padding_bottom = lookup [ "padding-bottom"; "padding" ] in
+  let style = !(block.style_ref) in
+  (* padding *)
+  let padding_top =
+    Style.lookup ~keys:[ "padding-top"; "padding" ] ~default:0. style
+  in
+  let padding_bottom =
+    Style.lookup ~keys:[ "padding-bottom"; "padding" ] ~default:0. style
+  in
   let padding =
-    {
-      block.box.padding with
-      top = Css.Value.get_size_value padding_top;
-      bottom = Css.Value.get_size_value padding_bottom;
-    }
+    { block.box.padding with top = padding_top; bottom = padding_bottom }
   in
-  let border_top = lookup [ "border-top-width"; "border-width" ] in
-  let border_bottom = lookup [ "border-bottom-width"; "border-width" ] in
+  (* border *)
+  let border_top =
+    Style.lookup ~keys:[ "border-top-width"; "border-width" ] ~default:0. style
+  in
+  let border_bottom =
+    Style.lookup
+      ~keys:[ "border-bottom-width"; "border-width" ]
+      ~default:0. style
+  in
   let border =
-    {
-      block.box.border with
-      top = Css.Value.get_size_value border_top;
-      bottom = Css.Value.get_size_value border_bottom;
-    }
+    { block.box.border with top = border_top; bottom = border_bottom }
   in
-  let margin_top = lookup [ "margin-top"; "margin" ] in
-  let margin_bottom = lookup [ "margin-bottom"; "margin" ] in
+  (* margin *)
+  let margin_top =
+    Style.lookup ~keys:[ "margin-top"; "margin" ] ~default:0. style
+  in
+  let margin_bottom =
+    Style.lookup ~keys:[ "margin-bottom"; "margin" ] ~default:0. style
+  in
   let margin =
-    {
-      block.box.margin with
-      top = Css.Value.get_size_value margin_top;
-      bottom = Css.Value.get_size_value margin_bottom;
-    }
+    { block.box.margin with top = margin_top; bottom = margin_bottom }
   in
+  (* position *)
   let x =
     containing_block.box.rect.x +. padding.left +. border.left +. margin.left
   in

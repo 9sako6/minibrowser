@@ -125,6 +125,16 @@ let get_size ~deafult ~key style =
     | _ -> deafult
   with Not_found -> deafult
 
+let lookup ~default ~keys style =
+  let rec aux keys =
+    match keys with
+    | [] -> Css.Value.Size (default, Px)
+    | key :: rest -> (
+        try Css.Value_map.find key style.specified_values
+        with Not_found -> aux rest)
+  in
+  Css.Value.get_size_value @@ aux keys
+
 let build_styles ~html ~css =
   let dom_nodes = html |> Dom.parse in
   let stylesheet = css |> Css.parse in
