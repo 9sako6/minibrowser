@@ -1,33 +1,13 @@
 exception Not_matched of string
 
-let matched_string regexp string =
-  if Str.string_match regexp string 0 then Str.matched_string string
-  else Not_matched string |> raise
+let text_re = Re.Posix.compile_pat "[^<]+"
+let attribute_value_re = Re.Posix.compile_pat "[^\"]+"
+let tag_re = Re.Posix.compile_pat "[A-Za-z0-9-]+"
+let matched_string re str = Re.Group.get (Re.exec re str) 0
 
-let tokenize_text chars =
-  let regexp = Str.regexp "[^<]+" in
+let tokenize_with_re re chars =
   let input_string = Base.String.of_char_list chars in
-  let chunk = matched_string regexp input_string in
-  let rest =
-    Base.String.drop_prefix input_string (String.length chunk)
-    |> Base.String.to_list
-  in
-  (chunk, rest)
-
-let tokenize_attribute_value chars =
-  let regexp = Str.regexp "[^\"]+" in
-  let input_string = Base.String.of_char_list chars in
-  let chunk = matched_string regexp input_string in
-  let rest =
-    Base.String.drop_prefix input_string (String.length chunk)
-    |> Base.String.to_list
-  in
-  (chunk, rest)
-
-let tokenize_chunk chars =
-  let regexp = Str.regexp "[A-Za-z0-9-]+" in
-  let input_string = Base.String.of_char_list chars in
-  let chunk = matched_string regexp input_string in
+  let chunk = matched_string re input_string in
   let rest =
     Base.String.drop_prefix input_string (String.length chunk)
     |> Base.String.to_list
@@ -48,9 +28,9 @@ let tokenize input_string =
     | _ ->
         let chunk, rest =
           match (is_in_tag, is_in_attribute) with
-          | true, _ -> tokenize_text chars
-          | false, true -> tokenize_attribute_value chars
-          | false, false -> tokenize_chunk chars
+          | true, _ -> tokenize_with_re text_re chars
+          | false, true -> tokenize_with_re attribute_value_re chars
+          | false, false -> tokenize_with_re tag_re chars
         in
         aux (tokens @ [ chunk ]) rest
   in

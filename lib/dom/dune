@@ -1,5 +1,5 @@
 (library
  (name dom)
- (libraries base str)
+ (libraries base re)
  (preprocess
   (pps ppx_deriving.show)))

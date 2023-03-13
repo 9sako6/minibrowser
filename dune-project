@@ -24,6 +24,7 @@
   dune
   base
   core
+  re
   lablgtk3
   ppx_deriving
   (ppx_expect :with-test)
