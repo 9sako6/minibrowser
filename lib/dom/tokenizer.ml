@@ -3,7 +3,10 @@ exception Not_matched of string
 let text_re = Re.Posix.compile_pat "[^<]+"
 let attribute_value_re = Re.Posix.compile_pat "[^\"]+"
 let tag_re = Re.Posix.compile_pat "[A-Za-z0-9-]+"
-let matched_string re str = Re.Group.get (Re.exec re str) 0
+
+let matched_string re str =
+  try Re.Group.get (Re.exec re str) 0
+  with Not_found -> raise @@ Not_matched str
 
 let tokenize_with_re re chars =
   let input_string = Base.String.of_char_list chars in
