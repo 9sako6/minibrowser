@@ -14,7 +14,7 @@ let empty () =
 let rec to_string ?(indent = "") = function
   | { node = dom_node; specified_values = map; children } ->
       let dom_string = Dom.Node.show !dom_node in
-      let map_string = Css.Value_map.pp map in
+      let map_string = Css.Value_map.show map in
       let children_string =
         children
         |> List.map (to_string ~indent:(indent ^ "  "))
@@ -135,10 +135,11 @@ let%test_module "build_styles" =
           --
           Style
           (Element ("div", [("id", "foo"); ("class", "alert")], [(InnerText "hello")]))
-          color: (Keyword "tomato");
+          [("color", (Keyword "tomato"))]
             --
             Style
             (InnerText "hello")
+            []
         |}]
 
     let%expect_test "build_styles" =
@@ -151,11 +152,11 @@ let%test_module "build_styles" =
           --
           Style
           (Element ("div", [("id", "foo"); ("class", "alert")], [(InnerText "hello")]))
-          font-size: (Size (12., Px));
+          [("font-size", (Size (12., Px)))]
             --
             Style
             (InnerText "hello")
-            font-size: (Size (12., Px));
+            [("font-size", (Size (12., Px)))]
         |}]
 
     let%expect_test "build_styles" =
@@ -169,19 +170,19 @@ let%test_module "build_styles" =
           Style
           (Element ("div", [("id", "foo"); ("class", "alert")],
              [(InnerText "hello"); (Element ("p", [], [(InnerText "child")]))]))
-          color: (Keyword "tomato"); font-size: (Size (12., Px));
+          [("color", (Keyword "tomato")); ("font-size", (Size (12., Px)))]
             --
             Style
             (InnerText "hello")
-            font-size: (Size (12., Px));
+            [("font-size", (Size (12., Px)))]
             --
             Style
             (Element ("p", [], [(InnerText "child")]))
-            font-size: (Size (12., Px));
+            [("font-size", (Size (12., Px)))]
               --
               Style
               (InnerText "child")
-              font-size: (Size (12., Px));
+              [("font-size", (Size (12., Px)))]
         |}]
 
     let%expect_test "build node with conflicted CSS rules" =
@@ -194,10 +195,10 @@ let%test_module "build_styles" =
           --
           Style
           (Element ("div", [("class", "block")], [(InnerText "hello")]))
-          display: (Keyword "inline");
+          [("display", (Keyword "inline"))]
             --
             Style
             (InnerText "hello")
-            display: (Keyword "inline");
+            [("display", (Keyword "inline"))]
         |}]
   end)

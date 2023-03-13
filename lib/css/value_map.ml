@@ -3,7 +3,7 @@ include M
 
 type t = Value.t M.t
 
-let pp map = [%show: (string * Value.t) list] (M.bindings map)
+let show map = [%show: (string * Value.t) list] (M.bindings map)
 
 let rec lookup keys default_value map =
   match keys with
