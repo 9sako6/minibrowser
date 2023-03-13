@@ -118,6 +118,13 @@ let get_background_color style =
     | _ -> raise Not_found
   with Not_found -> default_color
 
+let get_size ~deafult ~key style =
+  try
+    match Css.Value_map.find key style.specified_values with
+    | Css.Value.Size (height, _) -> height
+    | _ -> deafult
+  with Not_found -> deafult
+
 let build_styles ~html ~css =
   let dom_nodes = html |> Dom.parse in
   let stylesheet = css |> Css.parse in

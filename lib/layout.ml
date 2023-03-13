@@ -208,17 +208,11 @@ let width_calculated_block block =
   { block with box }
 
 let height_calculated_block block =
-  let style_map = !(block.style_ref).specified_values in
+  let style = !(block.style_ref) in
   let height =
-    try Css.Value_map.find "height" style_map
-    with Not_found -> Css.Value.Size (block.box.rect.height, Px)
+    Style.get_size ~deafult:block.box.rect.height ~key:"height" style
   in
-  let box =
-    {
-      block.box with
-      rect = { block.box.rect with height = Css.Value.get_size_value height };
-    }
-  in
+  let box = { block.box with rect = { block.box.rect with height } } in
   { block with box }
 
 let position_calculated_block block containing_block =
