@@ -44,6 +44,36 @@ type t = {
   color : color;
 }
 
+let expanded_by edge rect =
+  {
+    x = rect.x -. edge.left;
+    y = rect.y -. edge.top;
+    width = rect.width +. edge.left +. edge.right;
+    height = rect.height +. edge.top +. edge.bottom;
+  }
+
+let padding_box box = { box with rect = expanded_by box.padding box.rect }
+
+let border_box box =
+  { box with rect = expanded_by box.border (padding_box box).rect }
+
+let margin_box box =
+  { box with rect = expanded_by box.margin (border_box box).rect }
+
+let%expect_test "margin_box" =
+  let rect = { x = 0.; y = 0.; width = 10.; height = 10. } in
+  let padding = { top = 2.; right = 2.; bottom = 2.; left = 2. } in
+  let border = { top = 5.; right = 5.; bottom = 5.; left = 5. } in
+  let margin = { top = 100.; right = 100.; bottom = 100.; left = 100. } in
+  { rect; padding; border; margin } |> margin_box |> show_box |> print_endline;
+  [%expect
+    {| 
+      { rect = { x = -107.; y = -107.; width = 224.; height = 224. };
+        padding = { top = 2.; right = 2.; bottom = 2.; left = 2. };
+        border = { top = 5.; right = 5.; bottom = 5.; left = 5. };
+        margin = { top = 100.; right = 100.; bottom = 100.; left = 100. } }
+  |}]
+
 (*
   > 10.3.3 Block-level, non-replaced elements in normal flow
   > The following constraints must hold among the used values of the other properties:
@@ -52,8 +82,16 @@ type t = {
 
   https://www.w3.org/TR/CSS2/visudet.html#blockwidth
 *)
-let width_calculated_box ~width ~padding_left ~padding_right ~border_left
-    ~border_right ~margin_left ~margin_right box =
+let width_calculated_block block =
+  let style = !(block.style_ref) in
+  let box = block.box in
+  let width = style.size.width in
+  let padding_left = style.size.padding_left in
+  let padding_right = style.size.padding_right in
+  let border_left = style.size.border_left in
+  let border_right = style.size.border_right in
+  let margin_left = style.size.margin_left in
+  let margin_right = style.size.margin_right in
   let open Style in
   let total =
     [
@@ -128,65 +166,7 @@ let width_calculated_box ~width ~padding_left ~padding_right ~border_left
       right = get_size_value margin_right;
     }
   in
-  { rect; padding; border; margin }
-
-let%expect_test "width_calculated_box" =
-  width_calculated_box ~width:(Px 100.) ~padding_left:(Px 0.)
-    ~padding_right:(Px 0.) ~border_left:(Px 0.) ~border_right:(Px 0.)
-    ~margin_left:(Px 0.) ~margin_right:(Px 0.) (empty_box ~width:100. ())
-  |> show_box |> print_endline;
-
-  [%expect
-    {|
-      { rect = { x = 0.; y = 0.; width = 100.; height = 0. };
-        padding = { top = 0.; right = 0.; bottom = 0.; left = 0. };
-        border = { top = 0.; right = 0.; bottom = 0.; left = 0. };
-        margin = { top = 0.; right = 0.; bottom = 0.; left = 0. } }
-  |}]
-
-let expanded_by edge rect =
-  {
-    x = rect.x -. edge.left;
-    y = rect.y -. edge.top;
-    width = rect.width +. edge.left +. edge.right;
-    height = rect.height +. edge.top +. edge.bottom;
-  }
-
-let padding_box box = { box with rect = expanded_by box.padding box.rect }
-
-let border_box box =
-  { box with rect = expanded_by box.border (padding_box box).rect }
-
-let margin_box box =
-  { box with rect = expanded_by box.margin (border_box box).rect }
-
-let%expect_test "margin_box" =
-  let rect = { x = 0.; y = 0.; width = 10.; height = 10. } in
-  let padding = { top = 2.; right = 2.; bottom = 2.; left = 2. } in
-  let border = { top = 5.; right = 5.; bottom = 5.; left = 5. } in
-  let margin = { top = 100.; right = 100.; bottom = 100.; left = 100. } in
-  { rect; padding; border; margin } |> margin_box |> show_box |> print_endline;
-  [%expect
-    {| 
-      { rect = { x = -107.; y = -107.; width = 224.; height = 224. };
-        padding = { top = 2.; right = 2.; bottom = 2.; left = 2. };
-        border = { top = 5.; right = 5.; bottom = 5.; left = 5. };
-        margin = { top = 100.; right = 100.; bottom = 100.; left = 100. } }
-  |}]
-
-let width_calculated_block block =
-  let style = !(block.style_ref) in
-  let width = style.size.width in
-  let padding_left = style.size.padding_left in
-  let padding_right = style.size.padding_right in
-  let border_left = style.size.border_left in
-  let border_right = style.size.border_right in
-  let margin_left = style.size.margin_left in
-  let margin_right = style.size.margin_right in
-  let box =
-    width_calculated_box ~width ~padding_left ~padding_right ~border_left
-      ~border_right ~margin_left ~margin_right block.box
-  in
+  let box = { rect; padding; border; margin } in
   { block with box }
 
 let height_calculated_block block =
