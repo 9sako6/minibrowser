@@ -22,13 +22,6 @@ type box = {
 }
 [@@deriving show { with_path = false }]
 
-let empty_box ?(width = 0.) ?(height = 0.) () =
-  let rect = { x = 0.; y = 0.; width; height } in
-  let padding = { top = 0.; right = 0.; bottom = 0.; left = 0. } in
-  let border = { top = 0.; right = 0.; bottom = 0.; left = 0. } in
-  let margin = { top = 0.; right = 0.; bottom = 0.; left = 0. } in
-  { rect; padding; border; margin }
-
 type box_type =
   | Inline
   | Block
@@ -43,6 +36,23 @@ type t = {
   children : t list;
   color : color;
 }
+
+let empty_box ?(width = 0.) ?(height = 0.) () =
+  let rect = { x = 0.; y = 0.; width; height } in
+  let padding = { top = 0.; right = 0.; bottom = 0.; left = 0. } in
+  let border = { top = 0.; right = 0.; bottom = 0.; left = 0. } in
+  let margin = { top = 0.; right = 0.; bottom = 0.; left = 0. } in
+  { rect; padding; border; margin }
+
+let empty ?(width = 0.) ?(height = 0.) () =
+  let box = empty_box ~width ~height () in
+  {
+    box;
+    box_type = Anonymous;
+    children = [];
+    style_ref = ref (Style.empty ());
+    color = Style.get_background_color (Style.empty ());
+  }
 
 let expanded_by edge rect =
   {
@@ -234,16 +244,6 @@ let position_calculated_block block containing_block =
   let rect = { block.box.rect with x; y } in
   let box = { rect; padding; border; margin } in
   { block with box }
-
-let empty ?(width = 0.) ?(height = 0.) () =
-  let box = empty_box ~width ~height () in
-  {
-    box;
-    box_type = Anonymous;
-    children = [];
-    style_ref = ref (Style.empty ());
-    color = Style.get_background_color (Style.empty ());
-  }
 
 (* Build layout tree from style tree. *)
 let rec build ?(containing_block = empty ()) style =

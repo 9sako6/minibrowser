@@ -34,6 +34,6 @@ type t = {
   color : color;
 }
 
-val border_box : box -> box
 val empty : ?width:float -> ?height:float -> unit -> t
+val border_box : box -> box
 val build_layouts : root_layout:t -> html:string -> css:string -> t list
