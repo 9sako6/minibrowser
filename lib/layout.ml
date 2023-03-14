@@ -54,8 +54,7 @@ type t = {
 *)
 let width_calculated_box ~width ~padding_left ~padding_right ~border_left
     ~border_right ~margin_left ~margin_right box =
-  let open Css.Value in
-  let auto = Keyword "auto" in
+  let open Style in
   let total =
     [
       width;
@@ -74,41 +73,35 @@ let width_calculated_box ~width ~padding_left ~padding_right ~border_left
     then any 'auto' values for 'margin-left' or 'margin-right' are, for the following rules, treated as zero.
   *)
   let margin_left, margin_right =
-    match (width = auto, total > box.rect.width) with
+    match (width = Auto, total > box.rect.width) with
     | true, true ->
-        let margin_left =
-          if margin_left = auto then Size (0., Px) else margin_left
-        in
+        let margin_left = if margin_left = Auto then Px 0. else margin_left in
         let margin_right =
-          if margin_right = auto then Size (0., Px) else margin_right
+          if margin_right = Auto then Px 0. else margin_right
         in
         (margin_left, margin_right)
     | _ -> (margin_left, margin_right)
   in
   let underflow = box.rect.width -. total in
   let width, margin_left, margin_right =
-    match (width = auto, margin_left = auto, margin_right = auto) with
+    match (width = Auto, margin_left = Auto, margin_right = Auto) with
     (* If the values are overconstrained, calculate margin_right. *)
-    | false, false, false ->
-        (width, margin_left, margin_right + Size (underflow, Px))
+    | false, false, false -> (width, margin_left, margin_right + Px underflow)
     (* If exactly one size is auto, its used value follows from the equality. *)
-    | false, true, false -> (width, Size (underflow, Px), margin_right)
-    | false, false, true -> (width, margin_left, Size (underflow, Px))
+    | false, true, false -> (width, Px underflow, margin_right)
+    | false, false, true -> (width, margin_left, Px underflow)
     (* If margin-left and margin-right are both auto, their used values are equal. *)
-    | false, true, true ->
-        (width, Size (underflow /. 2., Px), Size (underflow /. 2., Px))
+    | false, true, true -> (width, Px (underflow /. 2.), Px (underflow /. 2.))
     | true, _, _ ->
-        let margin_left =
-          if margin_left = auto then Size (0., Px) else margin_left
-        in
+        let margin_left = if margin_left = Auto then Px 0. else margin_left in
         let margin_right =
-          if margin_right = auto then Size (0., Px) else margin_right
+          if margin_right = Auto then Px 0. else margin_right
         in
         let width, margin_right =
           match underflow >= 0. with
-          | true -> (Size (underflow, Px), margin_right)
+          | true -> (Px underflow, margin_right)
           (* Width can't be negative. Adjust the right margin instead. *)
-          | false -> (Size (0., Px), margin_right + Size (underflow, Px))
+          | false -> (Px 0., margin_right + Px underflow)
         in
         (width, margin_left, margin_right)
   in
@@ -138,15 +131,9 @@ let width_calculated_box ~width ~padding_left ~padding_right ~border_left
   { rect; padding; border; margin }
 
 let%expect_test "width_calculated_box" =
-  width_calculated_box
-    ~width:(Size (100., Px))
-    ~padding_left:(Size (0., Px))
-    ~padding_right:(Size (0., Px))
-    ~border_left:(Size (0., Px))
-    ~border_right:(Size (0., Px))
-    ~margin_left:(Size (0., Px))
-    ~margin_right:(Size (0., Px))
-    (empty_box ~width:100. ())
+  width_calculated_box ~width:(Px 100.) ~padding_left:(Px 0.)
+    ~padding_right:(Px 0.) ~border_left:(Px 0.) ~border_right:(Px 0.)
+    ~margin_left:(Px 0.) ~margin_right:(Px 0.) (empty_box ~width:100. ())
   |> show_box |> print_endline;
 
   [%expect
@@ -188,19 +175,14 @@ let%expect_test "margin_box" =
   |}]
 
 let width_calculated_block block =
-  let style_map = !(block.style_ref).specified_values in
-  let auto = Css.Value.Keyword "auto" in
-  let zero = Css.Value.(Size (0., Px)) in
-  let lookup keys = Css.Value_map.lookup keys zero style_map in
-  let width =
-    try Css.Value_map.find "width" style_map with Not_found -> auto
-  in
-  let padding_left = lookup [ "padding-left"; "padding" ] in
-  let padding_right = lookup [ "padding-right"; "padding" ] in
-  let border_left = lookup [ "border-left-width"; "border-width" ] in
-  let border_right = lookup [ "border-right-width"; "border-width" ] in
-  let margin_left = lookup [ "margin-left"; "margin" ] in
-  let margin_right = lookup [ "margin-right"; "margin" ] in
+  let style = !(block.style_ref) in
+  let width = style.size.width in
+  let padding_left = style.size.padding_left in
+  let padding_right = style.size.padding_right in
+  let border_left = style.size.border_left in
+  let border_right = style.size.border_right in
+  let margin_left = style.size.margin_left in
+  let margin_right = style.size.margin_right in
   let box =
     width_calculated_box ~width ~padding_left ~padding_right ~border_left
       ~border_right ~margin_left ~margin_right block.box
@@ -210,7 +192,9 @@ let width_calculated_block block =
 let height_calculated_block block =
   let style = !(block.style_ref) in
   let height =
-    Style.get_size ~deafult:block.box.rect.height ~key:"height" style
+    match style.size.height with
+    | Px px -> px
+    | Auto -> block.box.rect.height
   in
   let box = { block.box with rect = { block.box.rect with height } } in
   { block with box }
@@ -219,32 +203,42 @@ let position_calculated_block block containing_block =
   let style = !(block.style_ref) in
   (* padding *)
   let padding_top =
-    Style.lookup ~keys:[ "padding-top"; "padding" ] ~default:0. style
+    match style.size.padding_top with
+    | Px px -> px
+    | _ -> 0.
   in
   let padding_bottom =
-    Style.lookup ~keys:[ "padding-bottom"; "padding" ] ~default:0. style
+    match style.size.padding_bottom with
+    | Px px -> px
+    | _ -> 0.
   in
   let padding =
     { block.box.padding with top = padding_top; bottom = padding_bottom }
   in
   (* border *)
   let border_top =
-    Style.lookup ~keys:[ "border-top-width"; "border-width" ] ~default:0. style
+    match style.size.border_top with
+    | Px px -> px
+    | _ -> 0.
   in
   let border_bottom =
-    Style.lookup
-      ~keys:[ "border-bottom-width"; "border-width" ]
-      ~default:0. style
+    match style.size.border_bottom with
+    | Px px -> px
+    | _ -> 0.
   in
   let border =
     { block.box.border with top = border_top; bottom = border_bottom }
   in
   (* margin *)
   let margin_top =
-    Style.lookup ~keys:[ "margin-top"; "margin" ] ~default:0. style
+    match style.size.margin_top with
+    | Px px -> px
+    | _ -> 0.
   in
   let margin_bottom =
-    Style.lookup ~keys:[ "margin-bottom"; "margin" ] ~default:0. style
+    match style.size.margin_bottom with
+    | Px px -> px
+    | _ -> 0.
   in
   let margin =
     { block.box.margin with top = margin_top; bottom = margin_bottom }
@@ -274,7 +268,7 @@ let empty ?(width = 0.) ?(height = 0.) () =
 (* Build layout tree from style tree. *)
 let rec build ?(containing_block = empty ()) style =
   match style with
-  | Style.{ node = _; specified_values; children } as style_node ->
+  | Style.{ node = _; specified_values; children; size = _ } as style_node ->
       let color = Style.get_background_color style_node in
       let block =
         {

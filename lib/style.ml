@@ -2,17 +2,62 @@ type t = {
   node : Dom.Node.t ref;
   specified_values : Css.Value_map.t;
   children : t list;
+  size : size;
 }
+
+and size = {
+  width : px;
+  height : px;
+  padding : px;
+  padding_top : px;
+  padding_right : px;
+  padding_bottom : px;
+  padding_left : px;
+  border : px;
+  border_top : px;
+  border_right : px;
+  border_bottom : px;
+  border_left : px;
+  margin : px;
+  margin_top : px;
+  margin_right : px;
+  margin_bottom : px;
+  margin_left : px;
+}
+
+and px =
+  | Px of float
+  | Auto
 
 let empty () =
   {
     node = ref Dom.Node.empty;
     specified_values = Css.Value_map.empty;
     children = [];
+    size =
+      {
+        width = Auto;
+        height = Auto;
+        padding = Px 0.;
+        padding_top = Px 0.;
+        padding_right = Px 0.;
+        padding_bottom = Px 0.;
+        padding_left = Px 0.;
+        border = Px 0.;
+        border_top = Px 0.;
+        border_right = Px 0.;
+        border_bottom = Px 0.;
+        border_left = Px 0.;
+        margin = Px 0.;
+        margin_top = Px 0.;
+        margin_right = Px 0.;
+        margin_bottom = Px 0.;
+        margin_left = Px 0.;
+      };
   }
 
 let rec to_string ?(indent = "") = function
-  | { node = dom_node; specified_values = map; children } ->
+  | { node = dom_node; specified_values = map; children; size = _ } ->
       let dom_string = Dom.Node.show !dom_node in
       let map_string = Css.Value_map.show map in
       let children_string =
@@ -108,7 +153,149 @@ let rec build stylesheet dom_node_ref =
   in
   let map = Css.Value_map.empty in
   let map = add_rules matched_rules map in
-  { node = dom_node_ref; specified_values = map; children = style_children }
+  let width =
+    try Px (Css.Value_map.find "width" map |> Css.Value.get_size_value)
+    with Not_found -> Auto
+  in
+  let height =
+    try Px (Css.Value_map.find "height" map |> Css.Value.get_size_value)
+    with Not_found -> Auto
+  in
+  let padding =
+    Px
+      (Css.Value_map.lookup [ "padding" ] (Css.Value.Size (0., Px)) map
+      |> Css.Value.get_size_value)
+  in
+  let padding_top =
+    Px
+      (Css.Value_map.lookup
+         [ "padding-top"; "padding" ]
+         (Css.Value.Size (0., Px))
+         map
+      |> Css.Value.get_size_value)
+  in
+  let padding_right =
+    Px
+      (Css.Value_map.lookup
+         [ "padding-right"; "padding" ]
+         (Css.Value.Size (0., Px))
+         map
+      |> Css.Value.get_size_value)
+  in
+  let padding_bottom =
+    Px
+      (Css.Value_map.lookup
+         [ "padding-bottom"; "padding" ]
+         (Css.Value.Size (0., Px))
+         map
+      |> Css.Value.get_size_value)
+  in
+  let padding_left =
+    Px
+      (Css.Value_map.lookup
+         [ "padding-left"; "padding" ]
+         (Css.Value.Size (0., Px))
+         map
+      |> Css.Value.get_size_value)
+  in
+  let border =
+    Px
+      (Css.Value_map.lookup [ "border" ] (Css.Value.Size (0., Px)) map
+      |> Css.Value.get_size_value)
+  in
+  let border_top =
+    Px
+      (Css.Value_map.lookup
+         [ "border-width-top"; "border" ]
+         (Css.Value.Size (0., Px))
+         map
+      |> Css.Value.get_size_value)
+  in
+  let border_right =
+    Px
+      (Css.Value_map.lookup
+         [ "border-width-right"; "border" ]
+         (Css.Value.Size (0., Px))
+         map
+      |> Css.Value.get_size_value)
+  in
+  let border_bottom =
+    Px
+      (Css.Value_map.lookup
+         [ "border-width-bottom"; "border" ]
+         (Css.Value.Size (0., Px))
+         map
+      |> Css.Value.get_size_value)
+  in
+  let border_left =
+    Px
+      (Css.Value_map.lookup
+         [ "border-width-left"; "border" ]
+         (Css.Value.Size (0., Px))
+         map
+      |> Css.Value.get_size_value)
+  in
+  let margin =
+    Px
+      (Css.Value_map.lookup [ "margin" ] (Css.Value.Size (0., Px)) map
+      |> Css.Value.get_size_value)
+  in
+  let margin_top =
+    Px
+      (Css.Value_map.lookup [ "margin-top"; "margin" ]
+         (Css.Value.Size (0., Px))
+         map
+      |> Css.Value.get_size_value)
+  in
+  let margin_right =
+    Px
+      (Css.Value_map.lookup
+         [ "margin-right"; "margin" ]
+         (Css.Value.Size (0., Px))
+         map
+      |> Css.Value.get_size_value)
+  in
+  let margin_bottom =
+    Px
+      (Css.Value_map.lookup
+         [ "margin-bottom"; "margin" ]
+         (Css.Value.Size (0., Px))
+         map
+      |> Css.Value.get_size_value)
+  in
+  let margin_left =
+    Px
+      (Css.Value_map.lookup
+         [ "margin-left"; "margin" ]
+         (Css.Value.Size (0., Px))
+         map
+      |> Css.Value.get_size_value)
+  in
+  {
+    node = dom_node_ref;
+    specified_values = map;
+    children = style_children;
+    size =
+      {
+        width;
+        height;
+        padding;
+        padding_top;
+        padding_right;
+        padding_bottom;
+        padding_left;
+        border;
+        border_top;
+        border_right;
+        border_bottom;
+        border_left;
+        margin;
+        margin_top;
+        margin_right;
+        margin_bottom;
+        margin_left;
+      };
+  }
 
 let get_background_color style =
   let default_color = (0, 0, 0) in
@@ -117,23 +304,6 @@ let get_background_color style =
     | Css.Value.Rgb (r, g, b) -> (r, g, b)
     | _ -> raise Not_found
   with Not_found -> default_color
-
-let get_size ~deafult ~key style =
-  try
-    match Css.Value_map.find key style.specified_values with
-    | Css.Value.Size (height, _) -> height
-    | _ -> deafult
-  with Not_found -> deafult
-
-let lookup ~default ~keys style =
-  let rec aux keys =
-    match keys with
-    | [] -> Css.Value.Size (default, Px)
-    | key :: rest -> (
-        try Css.Value_map.find key style.specified_values
-        with Not_found -> aux rest)
-  in
-  Css.Value.get_size_value @@ aux keys
 
 let build_styles ~html ~css =
   let dom_nodes = html |> Dom.parse in
@@ -219,3 +389,10 @@ let%test_module "build_styles" =
             [("display", (Keyword "inline"))]
         |}]
   end)
+
+let get_size_value size =
+  match size with
+  | Px px -> px
+  | Auto -> 0.
+
+let ( + ) left right = Px (get_size_value left +. get_size_value right)
