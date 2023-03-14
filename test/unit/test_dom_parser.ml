@@ -44,7 +44,7 @@ let%test_module "parse" =
         (Element ("div", [], [(InnerText "Hello, World!")])) |}]
 
     let%expect_test "parse a div tag that has a class attribute" =
-      "<div class=\"red\">hi</div>" |> parse |> List.map Node.show
+      {| <div class="red">hi</div> |} |> parse |> List.map Node.show
       |> List.iter print_endline;
       [%expect
         {|
@@ -60,7 +60,7 @@ let%test_module "parse" =
          |}] *)
 
     let%expect_test "parse a link tag that has a css path as a href attribute" =
-      "<link href=\"global.css\"></link>" |> parse |> List.map Node.show
+      {| <link href="global.css"></link> |} |> parse |> List.map Node.show
       |> List.iter print_endline;
       [%expect
         {|
@@ -76,24 +76,38 @@ let%test_module "parse" =
         |}]
 
     let%expect_test "parse 2 tags" =
-      "<div>alice</div><div>bob</div>" |> parse |> List.map Node.show
-      |> List.iter print_endline;
+      {|
+        <div>alice</div>
+        <div>bob</div>
+      |} |> parse
+      |> List.map Node.show |> List.iter print_endline;
       [%expect
         {|
         (Element ("div", [], [(InnerText "alice")]))
         (Element ("div", [], [(InnerText "bob")])) |}]
 
     let%expect_test "parse with child" =
-      "<div>alice<p>child</p></div>" |> parse |> List.map Node.show
-      |> List.iter print_endline;
+      {|
+        <div>
+          alice
+          <p>child</p>
+        </div>
+      |}
+      |> parse |> List.map Node.show |> List.iter print_endline;
       [%expect
         {|
         (Element ("div", [],
            [(InnerText "alice"); (Element ("p", [], [(InnerText "child")]))])) |}]
 
     let%expect_test "parse with child and other" =
-      "<div>alice<p>child</p></div><div>bob</div>" |> parse
-      |> List.map Node.show |> List.iter print_endline;
+      {|
+        <div>
+          alice
+          <p>child</p>
+        </div>
+        <div>bob</div>
+      |}
+      |> parse |> List.map Node.show |> List.iter print_endline;
       [%expect
         {|
         (Element ("div", [],
@@ -105,8 +119,14 @@ let%test_module "parse" =
       [%expect {| (InnerText "hello") |}]
 
     let%expect_test "parse div tag with attribute and children" =
-      "<div class=\"red\">\n  hi<p>a</p><p>b</p></div>" |> parse
-      |> List.map Node.show |> List.iter print_endline;
+      {|
+        <div class="red">
+          hi
+          <p>a</p>
+          <p>b</p>
+        </div>
+      |}
+      |> parse |> List.map Node.show |> List.iter print_endline;
       [%expect
         {|
           (Element ("div", [("class", "red")],

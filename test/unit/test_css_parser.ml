@@ -52,7 +52,13 @@ let%test_module "parse" =
       [%expect {| (Stylesheet [(Rule ([(Class_selector "foo")], []))]) |}]
 
     let%expect_test "parse multiple declarations" =
-      ".foo {\n  display: none;\n  color: #191919;\n  font-size: 14px;\n}\n"
+      {|
+        .foo {
+          display: none;
+          color: #191919;
+          font-size: 14px;
+        }
+      |}
       |> parse |> Node.show_stylesheet |> print_endline;
       [%expect
         {|
@@ -66,8 +72,13 @@ let%test_module "parse" =
         |}]
 
     let%expect_test "parse multiple class selectors" =
-      ".foo,.bar {\n  display: flex;\n  color: red;\n}\n" |> parse
-      |> Node.show_stylesheet |> print_endline;
+      {|
+        .foo,.bar {
+          display: flex;
+          color: red;
+        }
+      |}
+      |> parse |> Node.show_stylesheet |> print_endline;
       [%expect
         {|
           (Stylesheet
