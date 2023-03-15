@@ -1,12 +1,13 @@
 type t = {
   node : Dom.Node.t ref;
   specified_values : Css.Value_map.t;
-  size : size;
+  props : props;
   children : t list;
 }
 [@@deriving show { with_path = false }]
 
-and size = {
+and props = {
+  display : display_type;
   width : px;
   height : px;
   padding : px;
@@ -30,13 +31,19 @@ and px =
   | Px of float
   | Auto
 
+and display_type =
+  | Inline
+  | Block
+  | Anonymous
+
 let empty () =
   {
     node = ref Dom.Node.empty;
     specified_values = Css.Value_map.empty;
     children = [];
-    size =
+    props =
       {
+        display = Inline;
         width = Auto;
         height = Auto;
         padding = Px 0.;
@@ -132,10 +139,18 @@ let rec build stylesheet dom_node_ref =
   in
   let map = Css.Value_map.empty in
   let map = add_rules matched_rules map in
+  let get_display map =
+    try
+      match Css.Value_map.find "display" map with
+      | Css.Value.Keyword "block" -> Block
+      | _ -> Inline
+    with Not_found -> Inline
+  in
   let lookup_size_value css_property default_value map =
     Css.Value_map.lookup css_property (Css.Value.Size (default_value, Px)) map
     |> Css.Value.get_size_value
   in
+  let display = get_display map in
   let width =
     try Px (Css.Value_map.find "width" map |> Css.Value.get_size_value)
     with Not_found -> Auto
@@ -183,8 +198,9 @@ let rec build stylesheet dom_node_ref =
     node = dom_node_ref;
     specified_values = map;
     children = style_children;
-    size =
+    props =
       {
+        display;
         width;
         height;
         padding;
@@ -213,6 +229,13 @@ let get_background_color style =
     | _ -> raise Not_found
   with Not_found -> default_color
 
+let get_size_value size =
+  match size with
+  | Px px -> px
+  | Auto -> 0.
+
+let ( + ) left right = Px (get_size_value left +. get_size_value right)
+
 let build_styles ~html ~css =
   let dom_nodes = html |> Dom.parse in
   let stylesheet = css |> Css.parse in
@@ -221,7 +244,13 @@ let build_styles ~html ~css =
 let%test_module "build_styles" =
   (module struct
     let%expect_test "build_styles" =
-      let html = "<div id=\"foo\" class=\"alert\">hello</div>" in
+      let html =
+        {|
+          <div id="foo" class="alert">
+            hello
+          </div>
+        |}
+      in
       let css = ".alert {color: tomato;}" in
       let styles = build_styles ~css ~html in
       styles |> List.map show |> List.iter print_endline;
@@ -231,20 +260,20 @@ let%test_module "build_styles" =
             ref ((Element ("div", [("id", "foo"); ("class", "alert")],
                     [(InnerText "hello")])));
             specified_values = color -> (Keyword "tomato");
-            size =
-            { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
-              padding_right = (Px 0.); padding_bottom = (Px 0.);
+            props =
+            { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
+              padding_top = (Px 0.); padding_right = (Px 0.); padding_bottom = (Px 0.);
               padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
               border_right = (Px 0.); border_bottom = (Px 0.); border_left = (Px 0.);
               margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
               margin_bottom = (Px 0.); margin_left = (Px 0.) };
             children =
             [{ node = ref ((InnerText "hello")); specified_values = ;
-               size =
-               { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
-                 padding_right = (Px 0.); padding_bottom = (Px 0.);
-                 padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
-                 border_right = (Px 0.); border_bottom = (Px 0.);
+               props =
+               { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
+                 padding_top = (Px 0.); padding_right = (Px 0.);
+                 padding_bottom = (Px 0.); padding_left = (Px 0.); border = (Px 0.);
+                 border_top = (Px 0.); border_right = (Px 0.); border_bottom = (Px 0.);
                  border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
                  margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
                  };
@@ -254,7 +283,13 @@ let%test_module "build_styles" =
         |}]
 
     let%expect_test "build_styles" =
-      let html = "<div id=\"foo\" class=\"alert\">hello</div>" in
+      let html =
+        {|
+          <div id="foo" class="alert">
+            hello
+          </div>
+        |}
+      in
       let css = "* {font-size: 12px;}" in
       let styles = build_styles ~css ~html in
       styles |> List.map show |> List.iter print_endline;
@@ -264,9 +299,9 @@ let%test_module "build_styles" =
             ref ((Element ("div", [("id", "foo"); ("class", "alert")],
                     [(InnerText "hello")])));
             specified_values = font-size -> (Size (12., Px));
-            size =
-            { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
-              padding_right = (Px 0.); padding_bottom = (Px 0.);
+            props =
+            { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
+              padding_top = (Px 0.); padding_right = (Px 0.); padding_bottom = (Px 0.);
               padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
               border_right = (Px 0.); border_bottom = (Px 0.); border_left = (Px 0.);
               margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
@@ -274,11 +309,11 @@ let%test_module "build_styles" =
             children =
             [{ node = ref ((InnerText "hello"));
                specified_values = font-size -> (Size (12., Px));
-               size =
-               { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
-                 padding_right = (Px 0.); padding_bottom = (Px 0.);
-                 padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
-                 border_right = (Px 0.); border_bottom = (Px 0.);
+               props =
+               { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
+                 padding_top = (Px 0.); padding_right = (Px 0.);
+                 padding_bottom = (Px 0.); padding_left = (Px 0.); border = (Px 0.);
+                 border_top = (Px 0.); border_right = (Px 0.); border_bottom = (Px 0.);
                  border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
                  margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
                  };
@@ -288,7 +323,14 @@ let%test_module "build_styles" =
         |}]
 
     let%expect_test "build_styles" =
-      let html = "<div id=\"foo\" class=\"alert\">hello<p>child</p></div>" in
+      let html =
+        {|
+          <div id="foo" class="alert">
+            hello
+            <p>child</p>
+          </div>
+        |}
+      in
       let css = ".alert {color: tomato;} * {font-size: 12px;}" in
       let styles = build_styles ~css ~html in
       styles |> List.map show |> List.iter print_endline;
@@ -299,9 +341,9 @@ let%test_module "build_styles" =
                     [(InnerText "hello"); (Element ("p", [], [(InnerText "child")]))])));
             specified_values = color -> (Keyword "tomato");
             font-size -> (Size (12., Px));
-            size =
-            { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
-              padding_right = (Px 0.); padding_bottom = (Px 0.);
+            props =
+            { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
+              padding_top = (Px 0.); padding_right = (Px 0.); padding_bottom = (Px 0.);
               padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
               border_right = (Px 0.); border_bottom = (Px 0.); border_left = (Px 0.);
               margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
@@ -309,19 +351,19 @@ let%test_module "build_styles" =
             children =
             [{ node = ref ((InnerText "hello"));
                specified_values = font-size -> (Size (12., Px));
-               size =
-               { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
-                 padding_right = (Px 0.); padding_bottom = (Px 0.);
-                 padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
-                 border_right = (Px 0.); border_bottom = (Px 0.);
+               props =
+               { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
+                 padding_top = (Px 0.); padding_right = (Px 0.);
+                 padding_bottom = (Px 0.); padding_left = (Px 0.); border = (Px 0.);
+                 border_top = (Px 0.); border_right = (Px 0.); border_bottom = (Px 0.);
                  border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
                  margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
                  };
                children = [] };
               { node = ref ((Element ("p", [], [(InnerText "child")])));
                 specified_values = font-size -> (Size (12., Px));
-                size =
-                { width = Auto; height = Auto; padding = (Px 0.);
+                props =
+                { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
                   padding_top = (Px 0.); padding_right = (Px 0.);
                   padding_bottom = (Px 0.); padding_left = (Px 0.); border = (Px 0.);
                   border_top = (Px 0.); border_right = (Px 0.);
@@ -331,8 +373,8 @@ let%test_module "build_styles" =
                 children =
                 [{ node = ref ((InnerText "child"));
                    specified_values = font-size -> (Size (12., Px));
-                   size =
-                   { width = Auto; height = Auto; padding = (Px 0.);
+                   props =
+                   { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
                      padding_top = (Px 0.); padding_right = (Px 0.);
                      padding_bottom = (Px 0.); padding_left = (Px 0.);
                      border = (Px 0.); border_top = (Px 0.); border_right = (Px 0.);
@@ -355,9 +397,9 @@ let%test_module "build_styles" =
         {|
           { node = ref ((Element ("div", [("class", "block")], [(InnerText "hello")])));
             specified_values = display -> (Keyword "inline");
-            size =
-            { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
-              padding_right = (Px 0.); padding_bottom = (Px 0.);
+            props =
+            { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
+              padding_top = (Px 0.); padding_right = (Px 0.); padding_bottom = (Px 0.);
               padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
               border_right = (Px 0.); border_bottom = (Px 0.); border_left = (Px 0.);
               margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
@@ -365,11 +407,11 @@ let%test_module "build_styles" =
             children =
             [{ node = ref ((InnerText "hello"));
                specified_values = display -> (Keyword "inline");
-               size =
-               { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
-                 padding_right = (Px 0.); padding_bottom = (Px 0.);
-                 padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
-                 border_right = (Px 0.); border_bottom = (Px 0.);
+               props =
+               { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
+                 padding_top = (Px 0.); padding_right = (Px 0.);
+                 padding_bottom = (Px 0.); padding_left = (Px 0.); border = (Px 0.);
+                 border_top = (Px 0.); border_right = (Px 0.); border_bottom = (Px 0.);
                  border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
                  margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
                  };
@@ -378,10 +420,3 @@ let%test_module "build_styles" =
             }
         |}]
   end)
-
-let get_size_value size =
-  match size with
-  | Px px -> px
-  | Auto -> 0.
-
-let ( + ) left right = Px (get_size_value left +. get_size_value right)

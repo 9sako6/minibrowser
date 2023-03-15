@@ -22,16 +22,10 @@ type box = {
 }
 [@@deriving show { with_path = false }]
 
-type box_type =
-  | Inline
-  | Block
-  | Anonymous
-
 type color = int * int * int
 
 type t = {
   box : box;
-  box_type : box_type;
   style_ref : Style.t ref;
   children : t list;
   color : color;
@@ -48,7 +42,6 @@ let empty ?(width = 0.) ?(height = 0.) () =
   let box = empty_box ~width ~height () in
   {
     box;
-    box_type = Anonymous;
     children = [];
     style_ref = ref (Style.empty ());
     color = Style.get_background_color (Style.empty ());
@@ -95,13 +88,13 @@ let%expect_test "margin_box" =
 let width_calculated_block block =
   let style = !(block.style_ref) in
   let box = block.box in
-  let width = style.size.width in
-  let padding_left = style.size.padding_left in
-  let padding_right = style.size.padding_right in
-  let border_left = style.size.border_left in
-  let border_right = style.size.border_right in
-  let margin_left = style.size.margin_left in
-  let margin_right = style.size.margin_right in
+  let width = style.props.width in
+  let padding_left = style.props.padding_left in
+  let padding_right = style.props.padding_right in
+  let border_left = style.props.border_left in
+  let border_right = style.props.border_right in
+  let margin_left = style.props.margin_left in
+  let margin_right = style.props.margin_right in
   let open Style in
   let total =
     [
@@ -182,7 +175,7 @@ let width_calculated_block block =
 let height_calculated_block block =
   let style = !(block.style_ref) in
   let height =
-    match style.size.height with
+    match style.props.height with
     | Px px -> px
     | Auto -> block.box.rect.height
   in
@@ -191,48 +184,51 @@ let height_calculated_block block =
 
 let position_calculated_block block containing_block =
   let style = !(block.style_ref) in
-  (* padding *)
-  let padding_top =
-    match style.size.padding_top with
-    | Px px -> px
-    | _ -> 0.
-  in
-  let padding_bottom =
-    match style.size.padding_bottom with
-    | Px px -> px
-    | _ -> 0.
-  in
-  let padding =
+  let calculate_padding style =
+    let open Style in
+    let padding_top =
+      match style.props.padding_top with
+      | Px px -> px
+      | _ -> 0.
+    in
+    let padding_bottom =
+      match style.props.padding_bottom with
+      | Px px -> px
+      | _ -> 0.
+    in
     { block.box.padding with top = padding_top; bottom = padding_bottom }
   in
-  (* border *)
-  let border_top =
-    match style.size.border_top with
-    | Px px -> px
-    | _ -> 0.
-  in
-  let border_bottom =
-    match style.size.border_bottom with
-    | Px px -> px
-    | _ -> 0.
-  in
-  let border =
+  let calculate_border style =
+    let open Style in
+    let border_top =
+      match style.props.border_top with
+      | Px px -> px
+      | _ -> 0.
+    in
+    let border_bottom =
+      match style.props.border_bottom with
+      | Px px -> px
+      | _ -> 0.
+    in
     { block.box.border with top = border_top; bottom = border_bottom }
   in
-  (* margin *)
-  let margin_top =
-    match style.size.margin_top with
-    | Px px -> px
-    | _ -> 0.
-  in
-  let margin_bottom =
-    match style.size.margin_bottom with
-    | Px px -> px
-    | _ -> 0.
-  in
-  let margin =
+  let calculate_margin style =
+    let open Style in
+    let margin_top =
+      match style.props.margin_top with
+      | Px px -> px
+      | _ -> 0.
+    in
+    let margin_bottom =
+      match style.props.margin_bottom with
+      | Px px -> px
+      | _ -> 0.
+    in
     { block.box.margin with top = margin_top; bottom = margin_bottom }
   in
+  let padding = calculate_padding style in
+  let border = calculate_border style in
+  let margin = calculate_margin style in
   (* position *)
   let x =
     containing_block.box.rect.x +. padding.left +. border.left +. margin.left
@@ -248,46 +244,39 @@ let position_calculated_block block containing_block =
 (* Build layout tree from style tree. *)
 let rec build ?(containing_block = empty ()) style =
   match style with
-  | Style.{ node = _; specified_values; children; size = _ } as style_node ->
+  | Style.{ node = _; specified_values = _; children; props = _ } as style_node
+    ->
       let color = Style.get_background_color style_node in
       let block =
         {
           box =
             empty_box ~width:containing_block.box.rect.width
               ~height:containing_block.box.rect.height ();
-          box_type = Anonymous;
           style_ref = ref style_node;
           children = [];
           color;
         }
       in
-      let box_type =
-        try
-          match Css.Value_map.find "display" specified_values with
-          | Css.Value.Keyword "block" -> Block
-          | _ -> Inline
-        with Not_found -> Inline
-      in
       let block = width_calculated_block block in
       let block = position_calculated_block block containing_block in
       let children = List.map (build ~containing_block:block) children in
-      let rec height_aux blocks acc =
-        match blocks with
-        | [] -> acc
-        | head :: rest ->
-            let height = (margin_box head.box).rect.height in
-            height_aux rest (acc +. height)
+      let children_height =
+        List.fold_left
+          (fun acc block -> (margin_box block.box).rect.height +. acc)
+          0. children
       in
-      let children_height = height_aux children 0. in
-      let box =
+      let block =
         {
-          block.box with
-          rect = { block.box.rect with height = children_height };
+          block with
+          box =
+            {
+              block.box with
+              rect = { block.box.rect with height = children_height };
+            };
         }
       in
-      let block = { block with box } in
       let block = height_calculated_block block in
-      { block with box_type; children }
+      { block with children }
 
 let build_layouts ~root_layout ~html ~css =
   let styles = Style.build_styles ~html ~css in

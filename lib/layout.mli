@@ -19,16 +19,10 @@ type box = {
   margin : edge;
 }
 
-type box_type =
-  | Inline
-  | Block
-  | Anonymous
-
 type color = int * int * int
 
 type t = {
   box : box;
-  box_type : box_type;
   style_ref : Style.t ref;
   children : t list;
   color : color;

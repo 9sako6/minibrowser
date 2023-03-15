@@ -2,12 +2,12 @@
 type t = {
   node : Dom.Node.t ref; (* Reference to the corresponding DOM node *)
   specified_values : Css.Value_map.t; (* CSS property-value pairs *)
-  size : size; (* Calculated size properties *)
+  props : props;
   children : t list; (* List of styled child nodes *)
 }
 
-(* Size properties for a styled DOM node *)
-and size = {
+and props = {
+  display : display_type;
   width : px;
   height : px;
   padding : px;
@@ -27,25 +27,21 @@ and size = {
   margin_left : px;
 }
 
-(* A size value in pixels or 'auto' *)
 and px =
   | Px of float
   | Auto
 
-(* Returns an empty styled node *)
+and display_type =
+  | Inline
+  | Block
+  | Anonymous
+
 val empty : unit -> t
-
-(* Converts a styled node to a string with optional indentation *)
-(* val to_string : ?indent:string -> t -> string *)
-
-(* Builds a list of styled nodes from HTML and CSS strings *)
-val build_styles : html:string -> css:string -> t list
-
-(* Returns the background color of a styled node as an (r, g, b) tuple *)
 val get_background_color : t -> int * int * int
-
-(* Returns the float value of a size property, treating 'Auto' as 0.0 *)
 val get_size_value : px -> float
 
 (* Adds two size values, treating 'Auto' as 0.0 *)
 val ( + ) : px -> px -> px
+
+(* Builds a list of styled nodes from HTML and CSS strings *)
+val build_styles : html:string -> css:string -> t list
