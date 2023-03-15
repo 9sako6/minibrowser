@@ -1,7 +1,7 @@
 let root_path_from_exe = "../../../../"
 
 let actual_path_from_exe file_name =
-  root_path_from_exe ^ "/test/visual_regression/actual/" ^ file_name
+  root_path_from_exe ^ "/test/visual_regression_test/actual/" ^ file_name
 
 let read_fixture_file path =
   let fixture_path_from_exe path =
@@ -11,7 +11,7 @@ let read_fixture_file path =
 
 let compare png_file_name =
   let command =
-    Printf.sprintf "cd %s/test/visual_regression && npm test -- %s %s %s"
+    Printf.sprintf "cd %s/test/visual_regression_test && npm test -- %s %s %s"
       root_path_from_exe
       ("expected/" ^ png_file_name)
       ("actual/" ^ png_file_name)
