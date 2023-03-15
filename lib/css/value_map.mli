@@ -8,3 +8,4 @@ val bindings : t -> (string * Value.t) list
 val add : string -> Value.t -> t -> t
 val lookup : string list -> Value.t -> t -> Value.t
 val show : t -> string
+val pp : Format.formatter -> t -> unit

@@ -2,8 +2,8 @@
 type t = {
   node : Dom.Node.t ref; (* Reference to the corresponding DOM node *)
   specified_values : Css.Value_map.t; (* CSS property-value pairs *)
-  children : t list; (* List of styled child nodes *)
   size : size; (* Calculated size properties *)
+  children : t list; (* List of styled child nodes *)
 }
 
 (* Size properties for a styled DOM node *)
@@ -36,7 +36,7 @@ and px =
 val empty : unit -> t
 
 (* Converts a styled node to a string with optional indentation *)
-val to_string : ?indent:string -> t -> string
+(* val to_string : ?indent:string -> t -> string *)
 
 (* Builds a list of styled nodes from HTML and CSS strings *)
 val build_styles : html:string -> css:string -> t list

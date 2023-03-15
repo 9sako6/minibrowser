@@ -1,9 +1,10 @@
 type t = {
   node : Dom.Node.t ref;
   specified_values : Css.Value_map.t;
-  children : t list;
   size : size;
+  children : t list;
 }
+[@@deriving show { with_path = false }]
 
 and size = {
   width : px;
@@ -55,18 +56,6 @@ let empty () =
         margin_left = Px 0.;
       };
   }
-
-let rec to_string ?(indent = "") = function
-  | { node = dom_node; specified_values = map; children; size = _ } ->
-      let dom_string = Dom.Node.show !dom_node in
-      let map_string = Css.Value_map.show map in
-      let children_string =
-        children
-        |> List.map (to_string ~indent:(indent ^ "  "))
-        |> String.concat ""
-      in
-      Printf.sprintf "%s--\n%sStyle\n%s%s\n%s%s\n%s" indent indent indent
-        dom_string indent map_string children_string
 
 (* any of the attributes match the selectors *)
 let matches dom_node rule =
@@ -235,77 +224,158 @@ let%test_module "build_styles" =
       let html = "<div id=\"foo\" class=\"alert\">hello</div>" in
       let css = ".alert {color: tomato;}" in
       let styles = build_styles ~css ~html in
-      styles |> List.map to_string |> List.iter print_endline;
+      styles |> List.map show |> List.iter print_endline;
       [%expect
         {|
-          --
-          Style
-          (Element ("div", [("id", "foo"); ("class", "alert")], [(InnerText "hello")]))
-          [("color", (Keyword "tomato"))]
-            --
-            Style
-            (InnerText "hello")
-            []
+          { node =
+            ref ((Element ("div", [("id", "foo"); ("class", "alert")],
+                    [(InnerText "hello")])));
+            specified_values = color -> (Keyword "tomato");
+            size =
+            { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+              padding_right = (Px 0.); padding_bottom = (Px 0.);
+              padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+              border_right = (Px 0.); border_bottom = (Px 0.); border_left = (Px 0.);
+              margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
+              margin_bottom = (Px 0.); margin_left = (Px 0.) };
+            children =
+            [{ node = ref ((InnerText "hello")); specified_values = ;
+               size =
+               { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+                 padding_right = (Px 0.); padding_bottom = (Px 0.);
+                 padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+                 border_right = (Px 0.); border_bottom = (Px 0.);
+                 border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
+                 margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
+                 };
+               children = [] }
+              ]
+            }
         |}]
 
     let%expect_test "build_styles" =
       let html = "<div id=\"foo\" class=\"alert\">hello</div>" in
       let css = "* {font-size: 12px;}" in
       let styles = build_styles ~css ~html in
-      styles |> List.map to_string |> List.iter print_endline;
+      styles |> List.map show |> List.iter print_endline;
       [%expect
         {|
-          --
-          Style
-          (Element ("div", [("id", "foo"); ("class", "alert")], [(InnerText "hello")]))
-          [("font-size", (Size (12., Px)))]
-            --
-            Style
-            (InnerText "hello")
-            [("font-size", (Size (12., Px)))]
+          { node =
+            ref ((Element ("div", [("id", "foo"); ("class", "alert")],
+                    [(InnerText "hello")])));
+            specified_values = font-size -> (Size (12., Px));
+            size =
+            { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+              padding_right = (Px 0.); padding_bottom = (Px 0.);
+              padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+              border_right = (Px 0.); border_bottom = (Px 0.); border_left = (Px 0.);
+              margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
+              margin_bottom = (Px 0.); margin_left = (Px 0.) };
+            children =
+            [{ node = ref ((InnerText "hello"));
+               specified_values = font-size -> (Size (12., Px));
+               size =
+               { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+                 padding_right = (Px 0.); padding_bottom = (Px 0.);
+                 padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+                 border_right = (Px 0.); border_bottom = (Px 0.);
+                 border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
+                 margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
+                 };
+               children = [] }
+              ]
+            }
         |}]
 
     let%expect_test "build_styles" =
       let html = "<div id=\"foo\" class=\"alert\">hello<p>child</p></div>" in
       let css = ".alert {color: tomato;} * {font-size: 12px;}" in
       let styles = build_styles ~css ~html in
-      styles |> List.map to_string |> List.iter print_endline;
+      styles |> List.map show |> List.iter print_endline;
       [%expect
         {|
-          --
-          Style
-          (Element ("div", [("id", "foo"); ("class", "alert")],
-             [(InnerText "hello"); (Element ("p", [], [(InnerText "child")]))]))
-          [("color", (Keyword "tomato")); ("font-size", (Size (12., Px)))]
-            --
-            Style
-            (InnerText "hello")
-            [("font-size", (Size (12., Px)))]
-            --
-            Style
-            (Element ("p", [], [(InnerText "child")]))
-            [("font-size", (Size (12., Px)))]
-              --
-              Style
-              (InnerText "child")
-              [("font-size", (Size (12., Px)))]
+          { node =
+            ref ((Element ("div", [("id", "foo"); ("class", "alert")],
+                    [(InnerText "hello"); (Element ("p", [], [(InnerText "child")]))])));
+            specified_values = color -> (Keyword "tomato");
+            font-size -> (Size (12., Px));
+            size =
+            { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+              padding_right = (Px 0.); padding_bottom = (Px 0.);
+              padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+              border_right = (Px 0.); border_bottom = (Px 0.); border_left = (Px 0.);
+              margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
+              margin_bottom = (Px 0.); margin_left = (Px 0.) };
+            children =
+            [{ node = ref ((InnerText "hello"));
+               specified_values = font-size -> (Size (12., Px));
+               size =
+               { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+                 padding_right = (Px 0.); padding_bottom = (Px 0.);
+                 padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+                 border_right = (Px 0.); border_bottom = (Px 0.);
+                 border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
+                 margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
+                 };
+               children = [] };
+              { node = ref ((Element ("p", [], [(InnerText "child")])));
+                specified_values = font-size -> (Size (12., Px));
+                size =
+                { width = Auto; height = Auto; padding = (Px 0.);
+                  padding_top = (Px 0.); padding_right = (Px 0.);
+                  padding_bottom = (Px 0.); padding_left = (Px 0.); border = (Px 0.);
+                  border_top = (Px 0.); border_right = (Px 0.);
+                  border_bottom = (Px 0.); border_left = (Px 0.); margin = (Px 0.);
+                  margin_top = (Px 0.); margin_right = (Px 0.);
+                  margin_bottom = (Px 0.); margin_left = (Px 0.) };
+                children =
+                [{ node = ref ((InnerText "child"));
+                   specified_values = font-size -> (Size (12., Px));
+                   size =
+                   { width = Auto; height = Auto; padding = (Px 0.);
+                     padding_top = (Px 0.); padding_right = (Px 0.);
+                     padding_bottom = (Px 0.); padding_left = (Px 0.);
+                     border = (Px 0.); border_top = (Px 0.); border_right = (Px 0.);
+                     border_bottom = (Px 0.); border_left = (Px 0.); margin = (Px 0.);
+                     margin_top = (Px 0.); margin_right = (Px 0.);
+                     margin_bottom = (Px 0.); margin_left = (Px 0.) };
+                   children = [] }
+                  ]
+                }
+              ]
+            }
         |}]
 
     let%expect_test "build node with conflicted CSS rules" =
       let html = "<div class=\"block\">hello</div>" in
       let css = ".block {display: block;} * {display: inline;}" in
       let styles = build_styles ~css ~html in
-      styles |> List.map to_string |> List.iter print_endline;
+      styles |> List.map show |> List.iter print_endline;
       [%expect
         {|
-          --
-          Style
-          (Element ("div", [("class", "block")], [(InnerText "hello")]))
-          [("display", (Keyword "inline"))]
-            --
-            Style
-            (InnerText "hello")
-            [("display", (Keyword "inline"))]
+          { node = ref ((Element ("div", [("class", "block")], [(InnerText "hello")])));
+            specified_values = display -> (Keyword "inline");
+            size =
+            { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+              padding_right = (Px 0.); padding_bottom = (Px 0.);
+              padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+              border_right = (Px 0.); border_bottom = (Px 0.); border_left = (Px 0.);
+              margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
+              margin_bottom = (Px 0.); margin_left = (Px 0.) };
+            children =
+            [{ node = ref ((InnerText "hello"));
+               specified_values = display -> (Keyword "inline");
+               size =
+               { width = Auto; height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+                 padding_right = (Px 0.); padding_bottom = (Px 0.);
+                 padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+                 border_right = (Px 0.); border_bottom = (Px 0.);
+                 border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
+                 margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
+                 };
+               children = [] }
+              ]
+            }
         |}]
   end)
 
