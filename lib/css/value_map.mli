@@ -1,3 +1,5 @@
+(* A module for mapping CSS property names to their values *)
+
 type t
 
 val empty : t
