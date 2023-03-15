@@ -22,13 +22,10 @@ type box = {
 }
 [@@deriving show { with_path = false }]
 
-type color = int * int * int
-
 type t = {
   box : box;
   style_ref : Style.t ref;
   children : t list;
-  color : color;
 }
 
 let empty_box ?(width = 0.) ?(height = 0.) () =
@@ -40,12 +37,7 @@ let empty_box ?(width = 0.) ?(height = 0.) () =
 
 let empty ?(width = 0.) ?(height = 0.) () =
   let box = empty_box ~width ~height () in
-  {
-    box;
-    children = [];
-    style_ref = ref (Style.empty ());
-    color = Style.get_background_color (Style.empty ());
-  }
+  { box; children = []; style_ref = ref (Style.empty ()) }
 
 let expanded_by edge rect =
   {
@@ -246,7 +238,6 @@ let rec build ?(containing_block = empty ()) style =
   match style with
   | Style.{ node = _; specified_values = _; children; props = _ } as style_node
     ->
-      let color = Style.get_background_color style_node in
       let block =
         {
           box =
@@ -254,7 +245,6 @@ let rec build ?(containing_block = empty ()) style =
               ~height:containing_block.box.rect.height ();
           style_ref = ref style_node;
           children = [];
-          color;
         }
       in
       let block = width_calculated_block block in

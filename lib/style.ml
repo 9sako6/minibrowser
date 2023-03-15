@@ -8,6 +8,7 @@ type t = {
 
 and props = {
   display : display_type;
+  background_color : color;
   width : px;
   height : px;
   padding : px;
@@ -27,14 +28,16 @@ and props = {
   margin_left : px;
 }
 
-and px =
-  | Px of float
-  | Auto
-
 and display_type =
   | Inline
   | Block
   | Anonymous
+
+and color = int * int * int
+
+and px =
+  | Px of float
+  | Auto
 
 let empty () =
   {
@@ -43,6 +46,7 @@ let empty () =
     children = [];
     props =
       {
+        background_color = (255, 255, 255);
         display = Inline;
         width = Auto;
         height = Auto;
@@ -143,14 +147,22 @@ let rec build stylesheet dom_node_ref =
     try
       match Css.Value_map.find "display" map with
       | Css.Value.Keyword "block" -> Block
-      | _ -> Inline
-    with Not_found -> Inline
+      | _ -> raise Not_found
+    with Not_found -> (empty ()).props.display
+  in
+  let get_background_color map =
+    try
+      match Css.Value_map.find "background-color" map with
+      | Css.Value.Rgb (r, g, b) -> (r, g, b)
+      | _ -> raise Not_found
+    with Not_found -> (empty ()).props.background_color
   in
   let lookup_size_value css_property default_value map =
     Css.Value_map.lookup css_property (Css.Value.Size (default_value, Px)) map
     |> Css.Value.get_size_value
   in
   let display = get_display map in
+  let background_color = get_background_color map in
   let width =
     try Px (Css.Value_map.find "width" map |> Css.Value.get_size_value)
     with Not_found -> Auto
@@ -201,6 +213,7 @@ let rec build stylesheet dom_node_ref =
     props =
       {
         display;
+        background_color;
         width;
         height;
         padding;
@@ -220,14 +233,6 @@ let rec build stylesheet dom_node_ref =
         margin_left;
       };
   }
-
-let get_background_color style =
-  let default_color = (0, 0, 0) in
-  try
-    match Css.Value_map.find "background-color" style.specified_values with
-    | Css.Value.Rgb (r, g, b) -> (r, g, b)
-    | _ -> raise Not_found
-  with Not_found -> default_color
 
 let get_size_value size =
   match size with
@@ -261,8 +266,9 @@ let%test_module "build_styles" =
                     [(InnerText "hello")])));
             specified_values = color -> (Keyword "tomato");
             props =
-            { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
-              padding_top = (Px 0.); padding_right = (Px 0.); padding_bottom = (Px 0.);
+            { display = Inline; background_color = (255, 255, 255); width = Auto;
+              height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+              padding_right = (Px 0.); padding_bottom = (Px 0.);
               padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
               border_right = (Px 0.); border_bottom = (Px 0.); border_left = (Px 0.);
               margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
@@ -270,10 +276,11 @@ let%test_module "build_styles" =
             children =
             [{ node = ref ((InnerText "hello")); specified_values = ;
                props =
-               { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
-                 padding_top = (Px 0.); padding_right = (Px 0.);
-                 padding_bottom = (Px 0.); padding_left = (Px 0.); border = (Px 0.);
-                 border_top = (Px 0.); border_right = (Px 0.); border_bottom = (Px 0.);
+               { display = Inline; background_color = (255, 255, 255); width = Auto;
+                 height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+                 padding_right = (Px 0.); padding_bottom = (Px 0.);
+                 padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+                 border_right = (Px 0.); border_bottom = (Px 0.);
                  border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
                  margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
                  };
@@ -300,8 +307,9 @@ let%test_module "build_styles" =
                     [(InnerText "hello")])));
             specified_values = font-size -> (Size (12., Px));
             props =
-            { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
-              padding_top = (Px 0.); padding_right = (Px 0.); padding_bottom = (Px 0.);
+            { display = Inline; background_color = (255, 255, 255); width = Auto;
+              height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+              padding_right = (Px 0.); padding_bottom = (Px 0.);
               padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
               border_right = (Px 0.); border_bottom = (Px 0.); border_left = (Px 0.);
               margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
@@ -310,10 +318,11 @@ let%test_module "build_styles" =
             [{ node = ref ((InnerText "hello"));
                specified_values = font-size -> (Size (12., Px));
                props =
-               { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
-                 padding_top = (Px 0.); padding_right = (Px 0.);
-                 padding_bottom = (Px 0.); padding_left = (Px 0.); border = (Px 0.);
-                 border_top = (Px 0.); border_right = (Px 0.); border_bottom = (Px 0.);
+               { display = Inline; background_color = (255, 255, 255); width = Auto;
+                 height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+                 padding_right = (Px 0.); padding_bottom = (Px 0.);
+                 padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+                 border_right = (Px 0.); border_bottom = (Px 0.);
                  border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
                  margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
                  };
@@ -342,8 +351,9 @@ let%test_module "build_styles" =
             specified_values = color -> (Keyword "tomato");
             font-size -> (Size (12., Px));
             props =
-            { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
-              padding_top = (Px 0.); padding_right = (Px 0.); padding_bottom = (Px 0.);
+            { display = Inline; background_color = (255, 255, 255); width = Auto;
+              height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+              padding_right = (Px 0.); padding_bottom = (Px 0.);
               padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
               border_right = (Px 0.); border_bottom = (Px 0.); border_left = (Px 0.);
               margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
@@ -352,10 +362,11 @@ let%test_module "build_styles" =
             [{ node = ref ((InnerText "hello"));
                specified_values = font-size -> (Size (12., Px));
                props =
-               { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
-                 padding_top = (Px 0.); padding_right = (Px 0.);
-                 padding_bottom = (Px 0.); padding_left = (Px 0.); border = (Px 0.);
-                 border_top = (Px 0.); border_right = (Px 0.); border_bottom = (Px 0.);
+               { display = Inline; background_color = (255, 255, 255); width = Auto;
+                 height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+                 padding_right = (Px 0.); padding_bottom = (Px 0.);
+                 padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+                 border_right = (Px 0.); border_bottom = (Px 0.);
                  border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
                  margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
                  };
@@ -363,18 +374,20 @@ let%test_module "build_styles" =
               { node = ref ((Element ("p", [], [(InnerText "child")])));
                 specified_values = font-size -> (Size (12., Px));
                 props =
-                { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
-                  padding_top = (Px 0.); padding_right = (Px 0.);
-                  padding_bottom = (Px 0.); padding_left = (Px 0.); border = (Px 0.);
-                  border_top = (Px 0.); border_right = (Px 0.);
-                  border_bottom = (Px 0.); border_left = (Px 0.); margin = (Px 0.);
-                  margin_top = (Px 0.); margin_right = (Px 0.);
-                  margin_bottom = (Px 0.); margin_left = (Px 0.) };
+                { display = Inline; background_color = (255, 255, 255); width = Auto;
+                  height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+                  padding_right = (Px 0.); padding_bottom = (Px 0.);
+                  padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+                  border_right = (Px 0.); border_bottom = (Px 0.);
+                  border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
+                  margin_right = (Px 0.); margin_bottom = (Px 0.);
+                  margin_left = (Px 0.) };
                 children =
                 [{ node = ref ((InnerText "child"));
                    specified_values = font-size -> (Size (12., Px));
                    props =
-                   { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
+                   { display = Inline; background_color = (255, 255, 255);
+                     width = Auto; height = Auto; padding = (Px 0.);
                      padding_top = (Px 0.); padding_right = (Px 0.);
                      padding_bottom = (Px 0.); padding_left = (Px 0.);
                      border = (Px 0.); border_top = (Px 0.); border_right = (Px 0.);
@@ -398,8 +411,9 @@ let%test_module "build_styles" =
           { node = ref ((Element ("div", [("class", "block")], [(InnerText "hello")])));
             specified_values = display -> (Keyword "inline");
             props =
-            { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
-              padding_top = (Px 0.); padding_right = (Px 0.); padding_bottom = (Px 0.);
+            { display = Inline; background_color = (255, 255, 255); width = Auto;
+              height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+              padding_right = (Px 0.); padding_bottom = (Px 0.);
               padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
               border_right = (Px 0.); border_bottom = (Px 0.); border_left = (Px 0.);
               margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
@@ -408,10 +422,11 @@ let%test_module "build_styles" =
             [{ node = ref ((InnerText "hello"));
                specified_values = display -> (Keyword "inline");
                props =
-               { display = Inline; width = Auto; height = Auto; padding = (Px 0.);
-                 padding_top = (Px 0.); padding_right = (Px 0.);
-                 padding_bottom = (Px 0.); padding_left = (Px 0.); border = (Px 0.);
-                 border_top = (Px 0.); border_right = (Px 0.); border_bottom = (Px 0.);
+               { display = Inline; background_color = (255, 255, 255); width = Auto;
+                 height = Auto; padding = (Px 0.); padding_top = (Px 0.);
+                 padding_right = (Px 0.); padding_bottom = (Px 0.);
+                 padding_left = (Px 0.); border = (Px 0.); border_top = (Px 0.);
+                 border_right = (Px 0.); border_bottom = (Px 0.);
                  border_left = (Px 0.); margin = (Px 0.); margin_top = (Px 0.);
                  margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
                  };

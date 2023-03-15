@@ -33,7 +33,8 @@ let build ~max_width ~html ~css =
   let rec aux layouts acc =
     match layouts with
     | [] -> acc
-    | Layout.{ box; style_ref = _; children; color = r, g, b } :: rest ->
+    | Layout.{ box; style_ref; children } :: rest ->
+        let r, g, b = !style_ref.props.background_color in
         let rgb = (float r /. 255., float g /. 255., float b /. 255.) in
         let rect = rect_of_box box in
         let command = Rect (rgb, rect) in

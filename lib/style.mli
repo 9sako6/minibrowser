@@ -8,6 +8,7 @@ type t = {
 
 and props = {
   display : display_type;
+  background_color : color;
   width : px;
   height : px;
   padding : px;
@@ -27,17 +28,18 @@ and props = {
   margin_left : px;
 }
 
-and px =
-  | Px of float
-  | Auto
-
 and display_type =
   | Inline
   | Block
   | Anonymous
 
+and color = int * int * int
+
+and px =
+  | Px of float
+  | Auto
+
 val empty : unit -> t
-val get_background_color : t -> int * int * int
 val get_size_value : px -> float
 
 (* Adds two size values, treating 'Auto' as 0.0 *)

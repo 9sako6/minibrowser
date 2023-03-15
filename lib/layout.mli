@@ -19,13 +19,10 @@ type box = {
   margin : edge;
 }
 
-type color = int * int * int
-
 type t = {
   box : box;
   style_ref : Style.t ref;
   children : t list;
-  color : color;
 }
 
 val empty : ?width:float -> ?height:float -> unit -> t
