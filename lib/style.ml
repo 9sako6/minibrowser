@@ -120,23 +120,13 @@ let add_rule rule map =
     match rule with
     | Css.Node.Rule (_, declarations) -> declarations
   in
-  let rec aux map declarations =
-    match declarations with
-    | [] -> (map, [])
-    | Css.Node.Declaration (name, value) :: rest ->
-        aux (Css.Value_map.add name value map) rest
-  in
-  let map, _ = aux map declarations in
-  map
+  List.fold_left
+    (fun acc_map (Css.Node.Declaration (name, value)) ->
+      Css.Value_map.add name value acc_map)
+    map declarations
 
 let add_rules rules map =
-  let rec aux map rules =
-    match rules with
-    | [] -> (map, [])
-    | rule :: rest -> aux (add_rule rule map) rest
-  in
-  let map, _ = aux map rules in
-  map
+  List.fold_left (fun acc_map rule -> add_rule rule acc_map) map rules
 
 let rec build stylesheet dom_node_ref =
   let matched_rules =
@@ -153,6 +143,10 @@ let rec build stylesheet dom_node_ref =
   in
   let map = Css.Value_map.empty in
   let map = add_rules matched_rules map in
+  let lookup_size_value css_property default_value map =
+    Css.Value_map.lookup css_property (Css.Value.Size (default_value, Px)) map
+    |> Css.Value.get_size_value
+  in
   let width =
     try Px (Css.Value_map.find "width" map |> Css.Value.get_size_value)
     with Not_found -> Auto
@@ -161,116 +155,41 @@ let rec build stylesheet dom_node_ref =
     try Px (Css.Value_map.find "height" map |> Css.Value.get_size_value)
     with Not_found -> Auto
   in
-  let padding =
-    Px
-      (Css.Value_map.lookup [ "padding" ] (Css.Value.Size (0., Px)) map
-      |> Css.Value.get_size_value)
-  in
+  let padding = Px (lookup_size_value [ "padding" ] 0. map) in
   let padding_top =
-    Px
-      (Css.Value_map.lookup
-         [ "padding-top"; "padding" ]
-         (Css.Value.Size (0., Px))
-         map
-      |> Css.Value.get_size_value)
+    Px (lookup_size_value [ "padding-top"; "padding" ] 0. map)
   in
   let padding_right =
-    Px
-      (Css.Value_map.lookup
-         [ "padding-right"; "padding" ]
-         (Css.Value.Size (0., Px))
-         map
-      |> Css.Value.get_size_value)
+    Px (lookup_size_value [ "padding-right"; "padding" ] 0. map)
   in
   let padding_bottom =
-    Px
-      (Css.Value_map.lookup
-         [ "padding-bottom"; "padding" ]
-         (Css.Value.Size (0., Px))
-         map
-      |> Css.Value.get_size_value)
+    Px (lookup_size_value [ "padding-bottom"; "padding" ] 0. map)
   in
   let padding_left =
-    Px
-      (Css.Value_map.lookup
-         [ "padding-left"; "padding" ]
-         (Css.Value.Size (0., Px))
-         map
-      |> Css.Value.get_size_value)
+    Px (lookup_size_value [ "padding-left"; "padding" ] 0. map)
   in
-  let border =
-    Px
-      (Css.Value_map.lookup [ "border" ] (Css.Value.Size (0., Px)) map
-      |> Css.Value.get_size_value)
-  in
+  let border = Px (lookup_size_value [ "border" ] 0. map) in
   let border_top =
-    Px
-      (Css.Value_map.lookup
-         [ "border-width-top"; "border" ]
-         (Css.Value.Size (0., Px))
-         map
-      |> Css.Value.get_size_value)
+    Px (lookup_size_value [ "border-width-top"; "border" ] 0. map)
   in
   let border_right =
-    Px
-      (Css.Value_map.lookup
-         [ "border-width-right"; "border" ]
-         (Css.Value.Size (0., Px))
-         map
-      |> Css.Value.get_size_value)
+    Px (lookup_size_value [ "border-width-right"; "border" ] 0. map)
   in
   let border_bottom =
-    Px
-      (Css.Value_map.lookup
-         [ "border-width-bottom"; "border" ]
-         (Css.Value.Size (0., Px))
-         map
-      |> Css.Value.get_size_value)
+    Px (lookup_size_value [ "border-width-bottom"; "border" ] 0. map)
   in
   let border_left =
-    Px
-      (Css.Value_map.lookup
-         [ "border-width-left"; "border" ]
-         (Css.Value.Size (0., Px))
-         map
-      |> Css.Value.get_size_value)
+    Px (lookup_size_value [ "border-width-left"; "border" ] 0. map)
   in
-  let margin =
-    Px
-      (Css.Value_map.lookup [ "margin" ] (Css.Value.Size (0., Px)) map
-      |> Css.Value.get_size_value)
-  in
-  let margin_top =
-    Px
-      (Css.Value_map.lookup [ "margin-top"; "margin" ]
-         (Css.Value.Size (0., Px))
-         map
-      |> Css.Value.get_size_value)
-  in
+  let margin = Px (lookup_size_value [ "margin" ] 0. map) in
+  let margin_top = Px (lookup_size_value [ "margin-top"; "margin" ] 0. map) in
   let margin_right =
-    Px
-      (Css.Value_map.lookup
-         [ "margin-right"; "margin" ]
-         (Css.Value.Size (0., Px))
-         map
-      |> Css.Value.get_size_value)
+    Px (lookup_size_value [ "margin-right"; "margin" ] 0. map)
   in
   let margin_bottom =
-    Px
-      (Css.Value_map.lookup
-         [ "margin-bottom"; "margin" ]
-         (Css.Value.Size (0., Px))
-         map
-      |> Css.Value.get_size_value)
+    Px (lookup_size_value [ "margin-bottom"; "margin" ] 0. map)
   in
-  let margin_left =
-    Px
-      (Css.Value_map.lookup
-         [ "margin-left"; "margin" ]
-         (Css.Value.Size (0., Px))
-         map
-      |> Css.Value.get_size_value)
-  in
+  let margin_left = Px (lookup_size_value [ "margin-left"; "margin" ] 0. map) in
   {
     node = dom_node_ref;
     specified_values = map;
