@@ -77,9 +77,9 @@ let%expect_test "margin_box" =
 
   https://www.w3.org/TR/CSS2/visudet.html#blockwidth
 *)
-let width_calculated_block block =
-  let style = !(block.style_ref) in
-  let box = block.box in
+let width_calculated_layout layout =
+  let style = !(layout.style_ref) in
+  let box = layout.box in
   let width = style.props.width in
   let padding_left = style.props.padding_left in
   let padding_right = style.props.padding_right in
@@ -162,20 +162,20 @@ let width_calculated_block block =
     }
   in
   let box = { rect; padding; border; margin } in
-  { block with box }
+  { layout with box }
 
-let height_calculated_block block =
-  let style = !(block.style_ref) in
+let height_calculated_layout layout =
+  let style = !(layout.style_ref) in
   let height =
     match style.props.height with
     | Px px -> px
-    | Auto -> block.box.rect.height
+    | Auto -> layout.box.rect.height
   in
-  let box = { block.box with rect = { block.box.rect with height } } in
-  { block with box }
+  let box = { layout.box with rect = { layout.box.rect with height } } in
+  { layout with box }
 
-let position_calculated_block block containing_block =
-  let style = !(block.style_ref) in
+let position_calculated_layout layout containing_layout =
+  let style = !(layout.style_ref) in
   let calculate_padding style =
     let open Style in
     let padding_top =
@@ -188,7 +188,7 @@ let position_calculated_block block containing_block =
       | Px px -> px
       | _ -> 0.
     in
-    { block.box.padding with top = padding_top; bottom = padding_bottom }
+    { layout.box.padding with top = padding_top; bottom = padding_bottom }
   in
   let calculate_border style =
     let open Style in
@@ -202,7 +202,7 @@ let position_calculated_block block containing_block =
       | Px px -> px
       | _ -> 0.
     in
-    { block.box.border with top = border_top; bottom = border_bottom }
+    { layout.box.border with top = border_top; bottom = border_bottom }
   in
   let calculate_margin style =
     let open Style in
@@ -216,57 +216,57 @@ let position_calculated_block block containing_block =
       | Px px -> px
       | _ -> 0.
     in
-    { block.box.margin with top = margin_top; bottom = margin_bottom }
+    { layout.box.margin with top = margin_top; bottom = margin_bottom }
   in
   let padding = calculate_padding style in
   let border = calculate_border style in
   let margin = calculate_margin style in
   (* position *)
   let x =
-    containing_block.box.rect.x +. padding.left +. border.left +. margin.left
+    containing_layout.box.rect.x +. padding.left +. border.left +. margin.left
   in
   let y =
-    containing_block.box.rect.height +. containing_block.box.rect.y
+    containing_layout.box.rect.height +. containing_layout.box.rect.y
     +. padding.top +. border.top +. margin.top
   in
-  let rect = { block.box.rect with x; y } in
+  let rect = { layout.box.rect with x; y } in
   let box = { rect; padding; border; margin } in
-  { block with box }
+  { layout with box }
 
 (* Build layout tree from style tree. *)
-let rec build ?(containing_block = empty ()) style =
+let rec build ?(containing_layout = empty ()) style =
   match style with
   | Style.{ children; props = _ } as style_node ->
-      let block =
+      let layout =
         {
           box =
-            empty_box ~width:containing_block.box.rect.width
-              ~height:containing_block.box.rect.height ();
+            empty_box ~width:containing_layout.box.rect.width
+              ~height:containing_layout.box.rect.height ();
           style_ref = ref style_node;
           children = [];
         }
       in
-      let block = width_calculated_block block in
-      let block = position_calculated_block block containing_block in
-      let children = List.map (build ~containing_block:block) children in
+      let layout = width_calculated_layout layout in
+      let layout = position_calculated_layout layout containing_layout in
+      let children = List.map (build ~containing_layout:layout) children in
       let children_height =
         List.fold_left
-          (fun acc block -> (margin_box block.box).rect.height +. acc)
+          (fun acc layout -> (margin_box layout.box).rect.height +. acc)
           0. children
       in
-      let block =
+      let layout =
         {
-          block with
+          layout with
           box =
             {
-              block.box with
-              rect = { block.box.rect with height = children_height };
+              layout.box with
+              rect = { layout.box.rect with height = children_height };
             };
         }
       in
-      let block = height_calculated_block block in
-      { block with children }
+      let layout = height_calculated_layout layout in
+      { layout with children }
 
 let build_layouts ~root_layout ~html ~css =
   let styles = Style.build_styles ~html ~css in
-  styles |> List.map (build ~containing_block:root_layout)
+  styles |> List.map (build ~containing_layout:root_layout)
