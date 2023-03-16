@@ -6,7 +6,6 @@ type rect = {
   width : float;
   height : float;
 }
-[@@deriving show { with_path = false }]
 
 type t = Rect of rgb * rect
 
