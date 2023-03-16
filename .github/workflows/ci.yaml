@@ -13,6 +13,6 @@ jobs:
         with:
           ocaml-compiler: 5.0.0
       - name: Install dependencies
-        run: opam switch create . --deps-only --with-test
+        run: opam install --deps-only -t .
       - name: Run tests
         run: opam exec -- dune runtest
