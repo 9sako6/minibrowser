@@ -236,8 +236,7 @@ let position_calculated_block block containing_block =
 (* Build layout tree from style tree. *)
 let rec build ?(containing_block = empty ()) style =
   match style with
-  | Style.{ node = _; specified_values = _; children; props = _ } as style_node
-    ->
+  | Style.{ children; props = _ } as style_node ->
       let block =
         {
           box =

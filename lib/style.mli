@@ -1,7 +1,5 @@
 (* A styled DOM node with calculated size properties *)
 type t = {
-  node : Dom.Node.t ref; (* Reference to the corresponding DOM node *)
-  specified_values : Css.Value_map.t; (* CSS property-value pairs *)
   props : props;
   children : t list; (* List of styled child nodes *)
 }

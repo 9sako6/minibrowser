@@ -1,6 +1,4 @@
 type t = {
-  node : Dom.Node.t ref;
-  specified_values : Css.Value_map.t;
   props : props;
   children : t list;
 }
@@ -41,8 +39,6 @@ and px =
 
 let empty () =
   {
-    node = ref Dom.Node.empty;
-    specified_values = Css.Value_map.empty;
     children = [];
     props =
       {
@@ -207,8 +203,6 @@ let rec build stylesheet dom_node_ref =
   in
   let margin_left = Px (lookup_size_value [ "margin-left"; "margin" ] 0. map) in
   {
-    node = dom_node_ref;
-    specified_values = map;
     children = style_children;
     props =
       {
@@ -261,11 +255,7 @@ let%test_module "build_styles" =
       styles |> List.map show |> List.iter print_endline;
       [%expect
         {|
-          { node =
-            ref ((Element ("div", [("id", "foo"); ("class", "alert")],
-                    [(InnerText "hello")])));
-            specified_values = color -> (Keyword "tomato");
-            props =
+          { props =
             { display = Inline; background_color = (255, 255, 255); width = Auto;
               height = Auto; padding = (Px 0.); padding_top = (Px 0.);
               padding_right = (Px 0.); padding_bottom = (Px 0.);
@@ -274,8 +264,7 @@ let%test_module "build_styles" =
               margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
               margin_bottom = (Px 0.); margin_left = (Px 0.) };
             children =
-            [{ node = ref ((InnerText "hello")); specified_values = ;
-               props =
+            [{ props =
                { display = Inline; background_color = (255, 255, 255); width = Auto;
                  height = Auto; padding = (Px 0.); padding_top = (Px 0.);
                  padding_right = (Px 0.); padding_bottom = (Px 0.);
@@ -302,11 +291,7 @@ let%test_module "build_styles" =
       styles |> List.map show |> List.iter print_endline;
       [%expect
         {|
-          { node =
-            ref ((Element ("div", [("id", "foo"); ("class", "alert")],
-                    [(InnerText "hello")])));
-            specified_values = font-size -> (Size (12., Px));
-            props =
+          { props =
             { display = Inline; background_color = (255, 255, 255); width = Auto;
               height = Auto; padding = (Px 0.); padding_top = (Px 0.);
               padding_right = (Px 0.); padding_bottom = (Px 0.);
@@ -315,9 +300,7 @@ let%test_module "build_styles" =
               margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
               margin_bottom = (Px 0.); margin_left = (Px 0.) };
             children =
-            [{ node = ref ((InnerText "hello"));
-               specified_values = font-size -> (Size (12., Px));
-               props =
+            [{ props =
                { display = Inline; background_color = (255, 255, 255); width = Auto;
                  height = Auto; padding = (Px 0.); padding_top = (Px 0.);
                  padding_right = (Px 0.); padding_bottom = (Px 0.);
@@ -345,12 +328,7 @@ let%test_module "build_styles" =
       styles |> List.map show |> List.iter print_endline;
       [%expect
         {|
-          { node =
-            ref ((Element ("div", [("id", "foo"); ("class", "alert")],
-                    [(InnerText "hello"); (Element ("p", [], [(InnerText "child")]))])));
-            specified_values = color -> (Keyword "tomato");
-            font-size -> (Size (12., Px));
-            props =
+          { props =
             { display = Inline; background_color = (255, 255, 255); width = Auto;
               height = Auto; padding = (Px 0.); padding_top = (Px 0.);
               padding_right = (Px 0.); padding_bottom = (Px 0.);
@@ -359,9 +337,7 @@ let%test_module "build_styles" =
               margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
               margin_bottom = (Px 0.); margin_left = (Px 0.) };
             children =
-            [{ node = ref ((InnerText "hello"));
-               specified_values = font-size -> (Size (12., Px));
-               props =
+            [{ props =
                { display = Inline; background_color = (255, 255, 255); width = Auto;
                  height = Auto; padding = (Px 0.); padding_top = (Px 0.);
                  padding_right = (Px 0.); padding_bottom = (Px 0.);
@@ -371,9 +347,7 @@ let%test_module "build_styles" =
                  margin_right = (Px 0.); margin_bottom = (Px 0.); margin_left = (Px 0.)
                  };
                children = [] };
-              { node = ref ((Element ("p", [], [(InnerText "child")])));
-                specified_values = font-size -> (Size (12., Px));
-                props =
+              { props =
                 { display = Inline; background_color = (255, 255, 255); width = Auto;
                   height = Auto; padding = (Px 0.); padding_top = (Px 0.);
                   padding_right = (Px 0.); padding_bottom = (Px 0.);
@@ -383,9 +357,7 @@ let%test_module "build_styles" =
                   margin_right = (Px 0.); margin_bottom = (Px 0.);
                   margin_left = (Px 0.) };
                 children =
-                [{ node = ref ((InnerText "child"));
-                   specified_values = font-size -> (Size (12., Px));
-                   props =
+                [{ props =
                    { display = Inline; background_color = (255, 255, 255);
                      width = Auto; height = Auto; padding = (Px 0.);
                      padding_top = (Px 0.); padding_right = (Px 0.);
@@ -408,9 +380,7 @@ let%test_module "build_styles" =
       styles |> List.map show |> List.iter print_endline;
       [%expect
         {|
-          { node = ref ((Element ("div", [("class", "block")], [(InnerText "hello")])));
-            specified_values = display -> (Keyword "inline");
-            props =
+          { props =
             { display = Inline; background_color = (255, 255, 255); width = Auto;
               height = Auto; padding = (Px 0.); padding_top = (Px 0.);
               padding_right = (Px 0.); padding_bottom = (Px 0.);
@@ -419,9 +389,7 @@ let%test_module "build_styles" =
               margin = (Px 0.); margin_top = (Px 0.); margin_right = (Px 0.);
               margin_bottom = (Px 0.); margin_left = (Px 0.) };
             children =
-            [{ node = ref ((InnerText "hello"));
-               specified_values = display -> (Keyword "inline");
-               props =
+            [{ props =
                { display = Inline; background_color = (255, 255, 255); width = Auto;
                  height = Auto; padding = (Px 0.); padding_top = (Px 0.);
                  padding_right = (Px 0.); padding_bottom = (Px 0.);
