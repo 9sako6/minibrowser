@@ -10,5 +10,4 @@ type t =
 [@@deriving show { with_path = false }]
 
 val get_size_value : t -> float
-val ( + ) : t -> t -> t
 val build : string list -> t

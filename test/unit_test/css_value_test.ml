@@ -21,19 +21,6 @@ let%test_module "Value_map.lookup" =
       [%expect {| (Keyword "default") |}]
   end)
 
-let%test_module "Value.( + )" =
-  (module struct
-    open Value
-
-    let%expect_test "( + )" =
-      Size (10., Px) + Size (2., Px) |> show |> print_endline;
-      [%expect {| (Size (12., Px)) |}]
-
-    let%expect_test "( + )" =
-      Size (10., Px) + Keyword "auto" |> show |> print_endline;
-      [%expect {| (Size (10., Px)) |}]
-  end)
-
 let%test_module "Value.build" =
   (module struct
     open Value
