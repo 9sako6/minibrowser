@@ -27,3 +27,7 @@ setup.log
 
 # Local OPAM switch
 _opam/
+
+# Visual regression tests
+test/visual_regression_test/actual/*.png
+test/visual_regression_test/diff/*.png

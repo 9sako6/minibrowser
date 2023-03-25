@@ -1,0 +1,5 @@
+(library
+ (name dom)
+ (libraries base re)
+ (preprocess
+  (pps ppx_deriving.show)))

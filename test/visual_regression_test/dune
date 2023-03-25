@@ -1,0 +1,3 @@
+(test
+ (name visual_regression_test)
+ (libraries core minibrowser))

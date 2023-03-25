@@ -1,0 +1,5 @@
+(library
+ (name css)
+ (libraries base str)
+ (preprocess
+  (pps ppx_deriving.show)))

@@ -1,0 +1,32 @@
+* {
+  display: block;
+  padding: 12px;
+}
+
+.a {
+  background-color: #ff0000;
+}
+
+.b {
+  background-color: #ffa500;
+}
+
+.c {
+  background-color: #ffff00;
+}
+
+.d {
+  background-color: #008000;
+}
+
+.e {
+  background-color: #0000ff;
+}
+
+.f {
+  background-color: #4b0082;
+}
+
+.g {
+  background-color: #800080;
+}
